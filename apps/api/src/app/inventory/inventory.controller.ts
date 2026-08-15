@@ -1,9 +1,15 @@
 import { Controller, Get, Patch, Body, Param } from '@nestjs/common';
-import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { InventoryService } from './inventory.service';
 import { InventoryItemResponseDto } from './dto/inventory-response.dto';
 import { AdjustStockDto } from './dto/adjust-stock.dto';
+import { Roles } from '../auth/decorators/roles.decorator';
 
+// No @Public() anywhere in this controller — stock levels are internal
+// operational data, not customer-facing. Every route here requires the
+// SUPER_ADMIN role via the class-level decorator below.
+@Roles('SUPER_ADMIN')
+@ApiBearerAuth()
 @ApiTags('inventory')
 @Controller('inventory')
 export class InventoryController {

@@ -276,3 +276,79 @@ reservation logic in particular have zero unit test coverage right now.
 The inventory reservation correctness was verified once, manually, via a
 throwaway script — that is not a substitute for a real regression test and
 should be the first test written next.
+
+---
+
+## Auth — real JWT + RBAC, HTTP-level verified
+
+Full implementation, not a stub: `@nestjs/jwt` + `@nestjs/passport` + `passport-jwt`
++ `bcryptjs`, matching the schema's flexible `Role`-based design (roles are
+plain strings checked against a `@Roles(...)` decorator, not a hardcoded
+enum — a new admin role needs no code change).
+
+**Backend**: `UsersModule` (seeded with one admin account:
+`admin@beauty-platform.local` / `ChangeMe123!` — change or remove before
+any real deploy), `AuthModule` with register/login/me, `JwtStrategy`,
+`JwtAuthGuard` applied **globally** via `APP_GUARD` with `@Public()` as the
+opt-out (fail-closed by default — a forgotten guard on a new endpoint now
+means "locked down" instead of "wide open"), `RolesGuard` for
+`@Roles('SUPER_ADMIN')`. Every controller updated: catalog/category/brand
+reads are `@Public()`, all writes require `SUPER_ADMIN`; inventory is
+entirely `SUPER_ADMIN`-only; order creation and single-order lookup stay
+`@Public()` for guest checkout (documented gap: no ownership check on order
+lookup by id yet — anyone with an order id can fetch it).
+
+**Real, executed verification** — not just a passing build:
+- Service-level smoke test: login with correct/wrong password, register,
+  duplicate-email rejection, guest checkout still working — all via
+  `AuthService`/`OrdersService` called directly against a real `app.init()`
+  boot.
+- **HTTP-level smoke test using `supertest` against the app's real HTTP
+  server** (in-process, no network binding — avoids the earlier
+  localhost-persistence sandbox quirk): confirmed `GET /products` with no
+  token → 200 (public), `GET /inventory` with no token → 401, the same
+  route with a valid customer token → 403 (wrong role), with a valid admin
+  token → 200 with real data, and with a garbage token → 401 without
+  crashing the server. All 5 assertions passed exactly as expected on the
+  first real run after one fix (see below). Both scripts were verification
+  tools, not deliverables, and were deleted after use.
+
+**Real bugs caught and fixed**:
+1. `UsersRepository`'s original seed logic called an async `bcrypt.hash`
+   from a constructor without awaiting it — a genuine race condition where
+   the very first login attempt could fail if it ran before seeding
+   finished. Fixed with `bcrypt.hashSync` in the field initializer.
+2. `supertest`'s current type definitions don't support `import * as
+   request` — a real `TS2349` from ESM/CJS interop, fixed with a default
+   import plus explicit `esModuleInterop` for the one-off script.
+3. `AuthService.login`/`register` deliberately return the same generic
+   "Invalid email or password" for both a nonexistent account and a wrong
+   password — an account-enumeration prevention that's easy to accidentally
+   skip and worth calling out explicitly in review.
+
+**Frontend**: Storefront and admin each have their **own** `AuthFacade`
+(separate `localStorage` keys — an admin session must never be readable by
+storefront code) — both root-provided per the same pattern as
+`CartFacade`/`WishlistFacade`, both SSR-safe (`typeof localStorage ===
+'undefined'` guards, confirmed by storefront's SSR build succeeding with 4
+prerendered routes). Storefront: `login`/`register` routes with Reactive
+Forms. Admin: login-only (no self-registration — admin accounts are
+provisioned, not self-service), plus a client-side `adminGuard` on every
+admin route — documented explicitly as a UX convenience only, since the
+real security boundary is the API's `RolesGuard`, which a client-side guard
+cannot substitute for.
+
+All 14 real projects pass `lint` + `build` as of this commit.
+
+### What's still a gap
+- No refresh-token flow — access tokens are 1 hour and there's no silent
+  renewal, so a session just dies and the user has to log in again.
+- No password-reset flow.
+- Order lookup-by-id has no ownership check (noted above).
+- The JWT secret has a hardcoded dev fallback if `JWT_SECRET` isn't set —
+  clearly commented as unsafe for real deployment, but worth a second
+  flag here since it's the kind of thing that's easy to miss in a config
+  review.
+- Zero automated test coverage on any of this — same deferred-tests note
+  as the last three slices. Auth is the single highest-value place to
+  actually write tests next, given how much this system now guards.

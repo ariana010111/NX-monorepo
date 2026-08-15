@@ -24,6 +24,31 @@ import {
   Observable
 } from 'rxjs';
 
+export interface RegisterDto {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface UserResponseDto {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: string[];
+}
+
+export interface AuthResponseDto {
+  accessToken: string;
+  user: UserResponseDto;
+}
+
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
 export interface ProductImageDto {
   url: string;
   altText?: string;
@@ -325,6 +350,105 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerRegister<TData = AuthResponseDto>(registerDto: RegisterDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerRegister<TData = AuthResponseDto>(registerDto: RegisterDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerRegister<TData = AuthResponseDto>(registerDto: RegisterDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerRegister<TData = AuthResponseDto>(
+    registerDto: RegisterDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/register`,
+      registerDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/register`,
+      registerDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/register`,
+      registerDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerLogin<TData = AuthResponseDto>(loginDto: LoginDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerLogin<TData = AuthResponseDto>(loginDto: LoginDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerLogin<TData = AuthResponseDto>(loginDto: LoginDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerLogin<TData = AuthResponseDto>(
+    loginDto: LoginDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/login`,
+      loginDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/login`,
+      loginDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/login`,
+      loginDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerMe<TData = void>( options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerMe<TData = void>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerMe<TData = void>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerMe<TData = void>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/auth/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/auth/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/auth/me`,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }

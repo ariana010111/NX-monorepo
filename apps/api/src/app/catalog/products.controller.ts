@@ -1,15 +1,18 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, HttpCode } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiQuery, ApiNoContentResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiQuery, ApiNoContentResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
+import { Public } from '../auth/decorators/public.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @Public()
   @Get()
   @ApiOkResponse({ type: ProductResponseDto, isArray: true })
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -25,30 +28,41 @@ export class ProductsController {
     return this.productsService.list(page, pageSize, category, brand);
   }
 
+  // Admin-only lookup by internal id (customer-facing lookups go through
+  // getBySlug below). Requires auth — no @Public() here.
+  @Roles('SUPER_ADMIN')
+  @ApiBearerAuth()
   @Get('by-id/:id')
   @ApiOkResponse({ type: ProductResponseDto })
   getById(@Param('id') id: string) {
     return this.productsService.getById(id);
   }
 
+  @Public()
   @Get(':slug')
   @ApiOkResponse({ type: ProductResponseDto })
   getBySlug(@Param('slug') slug: string) {
     return this.productsService.getBySlug(slug);
   }
 
+  @Roles('SUPER_ADMIN')
+  @ApiBearerAuth()
   @Post()
   @ApiCreatedResponse({ type: ProductResponseDto })
   create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
   }
 
+  @Roles('SUPER_ADMIN')
+  @ApiBearerAuth()
   @Patch(':id')
   @ApiOkResponse({ type: ProductResponseDto })
   update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productsService.update(id, dto);
   }
 
+  @Roles('SUPER_ADMIN')
+  @ApiBearerAuth()
   @Delete(':id')
   @HttpCode(204)
   @ApiNoContentResponse()
