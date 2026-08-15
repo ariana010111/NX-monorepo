@@ -111,6 +111,21 @@ export interface CreateBrandDto {
   logoUrl?: string;
 }
 
+export interface InventoryItemResponseDto {
+  variantId: string;
+  productName: string;
+  variantLabel: string;
+  quantityOnHand: number;
+  quantityReserved: number;
+  quantityAvailable: number;
+  lowStockThreshold: number;
+}
+
+export interface AdjustStockDto {
+  quantityChange: number;
+  note?: string;
+}
+
 export interface ShippingAddressInputDto {
   fullName: string;
   line1: string;
@@ -683,6 +698,106 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/brands/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  inventoryControllerList<TData = InventoryItemResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/inventory`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/inventory`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/inventory`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientBodyOptions): Observable<TData>;
+ inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(
+    variantId: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/inventory/${variantId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/inventory/${variantId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/inventory/${variantId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientBodyOptions): Observable<TData>;
+ inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  inventoryControllerAdjust<TData = InventoryItemResponseDto>(
+    variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/inventory/${variantId}`,
+      adjustStockDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/inventory/${variantId}`,
+      adjustStockDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/inventory/${variantId}`,
+      adjustStockDto,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }

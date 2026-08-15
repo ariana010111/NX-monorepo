@@ -5,6 +5,8 @@ import {
   ProductFormComponent,
   TaxonomyFacade,
   TaxonomyComponent,
+  InventoryFacade,
+  InventoryComponent,
 } from '@beauty-platform-validated/admin-feature-catalog-mgmt';
 
 export const appRoutes: Routes = [
@@ -13,4 +15,5 @@ export const appRoutes: Routes = [
   { path: 'products/new', component: ProductFormComponent },
   { path: 'products/:id/edit', component: ProductFormComponent },
   { path: 'taxonomy', component: TaxonomyComponent, providers: [TaxonomyFacade] },
+  { path: 'inventory', component: InventoryComponent, providers: [InventoryFacade] },
 ];

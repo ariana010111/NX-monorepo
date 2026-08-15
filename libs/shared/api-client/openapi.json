@@ -388,6 +388,98 @@
         ]
       }
     },
+    "/inventory": {
+      "get": {
+        "operationId": "InventoryController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InventoryItemResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/inventory/{variantId}": {
+      "get": {
+        "operationId": "InventoryController_getByVariantId",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryItemResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "inventory"
+        ]
+      },
+      "patch": {
+        "operationId": "InventoryController_adjust",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdjustStockDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryItemResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
     "/orders": {
       "post": {
         "operationId": "OrdersController_create",
@@ -728,6 +820,56 @@
         "required": [
           "name",
           "slug"
+        ]
+      },
+      "InventoryItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "variantLabel": {
+            "type": "string"
+          },
+          "quantityOnHand": {
+            "type": "number"
+          },
+          "quantityReserved": {
+            "type": "number"
+          },
+          "quantityAvailable": {
+            "type": "number"
+          },
+          "lowStockThreshold": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "variantId",
+          "productName",
+          "variantLabel",
+          "quantityOnHand",
+          "quantityReserved",
+          "quantityAvailable",
+          "lowStockThreshold"
+        ]
+      },
+      "AdjustStockDto": {
+        "type": "object",
+        "properties": {
+          "quantityChange": {
+            "type": "number",
+            "example": 10
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "quantityChange"
         ]
       },
       "ShippingAddressInputDto": {
