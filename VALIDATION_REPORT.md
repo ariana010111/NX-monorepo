@@ -225,3 +225,54 @@ Every Nest module other than catalog/categories/brands; storefront
 checkout/account features; admin orders/customers/analytics features;
 the real Prisma-backed repositories (still blocked on local
 `npx prisma generate` — see session 1 notes, unchanged).
+
+---
+
+## Sessions 3–5 summary: admin catalog mgmt, checkout/orders, inventory, admin orders, wishlist
+
+All real, all lint+build validated after each slice (tests intentionally
+deferred at the person's request — see "What's still missing" below).
+
+- **Admin catalog management**: Products gained update/delete/getById;
+  Categories/Brands gained create. Admin app: product table with delete,
+  Reactive Forms create/edit (using the real generated `UpdateProductDtoStatus`
+  union type), categories/brands taxonomy screen.
+- **Checkout + Orders**: `OrdersModule` (create/getById), storefront
+  `CheckoutFacade` + `CheckoutComponent` with a nested Reactive Form for
+  shipping address, wired to the root-provided `CartFacade`.
+- **Inventory**: `InventoryModule` wired into `OrdersService` via real
+  cross-module DI — `reserveForOrder()` is all-or-nothing across every line
+  item. **Proved correct with a real, executed smoke test** (not just a
+  build check): created an order for 5 of 8 available units, confirmed
+  availability dropped to 3, then confirmed a second order for 4 units was
+  correctly rejected with `InsufficientStockException`. Admin stock table
+  with restock action.
+- **Admin order management**: Orders gained list + status-update endpoints
+  using the schema's real `OrderStatus` enum values. Admin order queue with
+  inline per-row status dropdown, set as the admin app's landing page.
+- **Wishlist**: Client-side only, by design — matches how `CartFacade`
+  already works (no backend cart persistence exists either). Root-provided
+  `WishlistFacade`, heart-toggle on both the catalog grid and PDP, dedicated
+  wishlist page. `/wishlist` and `/cart` both prerender successfully since
+  neither makes a build-time API call.
+
+All 13 real projects (`api`, `storefront`, `admin`, and 10 libs) pass
+`lint` + `build` as of this commit.
+
+### What's still missing from the original MVP scope
+Reviews, coupons, a logged-in customer account/order-history view, the
+admin customer-management screen, and — the bigger structural gap — there
+is still no authentication anywhere in the system. Every admin screen is
+currently reachable with no login at all, and orders are created without
+any user identity beyond a plain email field. This is fine for continuing
+architectural validation but is a hard blocker before this could go anywhere
+near production.
+
+### Automated tests
+Deliberately not added in sessions 3–5 per direct instruction — every new
+facade (`ProductListFacade`, `InventoryFacade`, `OrderListFacade`,
+`CheckoutFacade`, `WishlistFacade`, `TaxonomyFacade`) and the inventory
+reservation logic in particular have zero unit test coverage right now.
+The inventory reservation correctness was verified once, manually, via a
+throwaway script — that is not a substitute for a real regression test and
+should be the first test written next.

@@ -1,7 +1,8 @@
 import { Component, computed, inject, signal, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
-import { ProductsApiService, CartFacade } from '@beauty-platform-validated/storefront-data-access';
+import { ProductsApiService, CartFacade, WishlistFacade } from '@beauty-platform-validated/storefront-data-access';
+import type { ProductResponseDto } from '@beauty-platform-validated/api-client';
 
 /**
  * The beauty-specific piece: variants are grouped by attribute name (Shade,
@@ -18,6 +19,10 @@ import { ProductsApiService, CartFacade } from '@beauty-platform-validated/store
       <h1>{{ product.name }}</h1>
       <p>{{ product.brandName }}</p>
       <p>{{ product.description }}</p>
+
+      <button type="button" [attr.aria-pressed]="isWishlisted()" (click)="onToggleWishlist(product)">
+        {{ isWishlisted() ? '♥ Saved' : '♡ Save to wishlist' }}
+      </button>
 
       @for (group of attributeGroups(); track group.name) {
         <fieldset>
@@ -51,6 +56,7 @@ export class ProductDetailComponent {
 
   private readonly productsApi = inject(ProductsApiService);
   private readonly cartFacade = inject(CartFacade);
+  private readonly wishlistFacade = inject(WishlistFacade);
 
   readonly productResource = rxResource({
     params: () => ({ slug: this.slug() }),
@@ -84,8 +90,24 @@ export class ProductDetailComponent {
     );
   });
 
+  readonly isWishlisted = computed(() => {
+    const product = this.productResource.value();
+    if (!product) return false;
+    return this.wishlistFacade.items().some((i) => i.productId === product.id);
+  });
+
   selectAttribute(attributeName: string, value: string) {
     this.selectedValues.update((current) => ({ ...current, [attributeName]: value }));
+  }
+
+  onToggleWishlist(product: ProductResponseDto) {
+    this.wishlistFacade.toggle({
+      productId: product.id,
+      productSlug: product.slug,
+      name: product.name,
+      imageUrl: product.images[0]?.url,
+      fromPrice: product.fromPrice,
+    });
   }
 
   addToCart() {
