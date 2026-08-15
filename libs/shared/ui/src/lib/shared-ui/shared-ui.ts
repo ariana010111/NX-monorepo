@@ -1,9 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 
+/**
+ * The premium visual language lives here, centrally. Wraps standard
+ * interaction behavior but owns the actual brand look — changing the
+ * primary button style is a one-file change, not a grep across features.
+ */
 @Component({
-  selector: 'lib-shared-ui',
+  selector: 'beauty-button',
   imports: [],
-  templateUrl: './shared-ui.html',
+  template: `<button class="beauty-btn" [class.beauty-btn--primary]="variant() === 'primary'">
+    <ng-content></ng-content>
+  </button>`,
   styleUrl: './shared-ui.css',
 })
-export class SharedUi {}
+export class ButtonComponent {
+  variant = input<'primary' | 'secondary'>('primary');
+}
