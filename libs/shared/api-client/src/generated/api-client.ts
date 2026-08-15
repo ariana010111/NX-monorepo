@@ -111,6 +111,48 @@ export interface CreateBrandDto {
   logoUrl?: string;
 }
 
+export interface ShippingAddressInputDto {
+  fullName: string;
+  line1: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
+
+export interface OrderItemInputDto {
+  variantId: string;
+  productName: string;
+  variantLabel: string;
+  unitPrice: number;
+  quantity: number;
+}
+
+export interface CreateOrderDto {
+  email: string;
+  shippingAddress: ShippingAddressInputDto;
+  items: OrderItemInputDto[];
+}
+
+export interface OrderItemResponseDto {
+  variantId: string;
+  productName: string;
+  variantLabel: string;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+}
+
+export interface OrderResponseDto {
+  id: string;
+  orderNumber: string;
+  email: string;
+  status: string;
+  subtotal: number;
+  grandTotal: number;
+  items: OrderItemResponseDto[];
+  placedAt: string;
+}
+
 export type ProductsControllerListParams = {
 page?: number;
 pageSize?: number;
@@ -641,6 +683,71 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/brands/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ ordersControllerCreate<TData = OrderResponseDto>(createOrderDto: CreateOrderDto, options?: HttpClientBodyOptions): Observable<TData>;
+ ordersControllerCreate<TData = OrderResponseDto>(createOrderDto: CreateOrderDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ ordersControllerCreate<TData = OrderResponseDto>(createOrderDto: CreateOrderDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  ordersControllerCreate<TData = OrderResponseDto>(
+    createOrderDto: CreateOrderDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/orders`,
+      createOrderDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/orders`,
+      createOrderDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/orders`,
+      createOrderDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ ordersControllerGetById<TData = OrderResponseDto>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ ordersControllerGetById<TData = OrderResponseDto>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ ordersControllerGetById<TData = OrderResponseDto>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  ordersControllerGetById<TData = OrderResponseDto>(
+    id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/orders/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/orders/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/orders/${id}`,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }

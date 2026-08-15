@@ -18,6 +18,13 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server,
   },
   {
+    // Checkout has no SEO value and is inherently personalized/dynamic —
+    // same reasoning as the two routes above, made explicit rather than
+    // relying on it falling through to the wildcard rule below.
+    path: 'checkout',
+    renderMode: RenderMode.Server,
+  },
+  {
     path: '**',
     renderMode: RenderMode.Prerender,
   },

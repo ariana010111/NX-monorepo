@@ -36,4 +36,8 @@ export class CartFacade {
   removeItem(variantId: string) {
     this._items.update((items) => items.filter((i) => i.variantId !== variantId));
   }
+
+  clear() {
+    this._items.set([]);
+  }
 }

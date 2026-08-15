@@ -36,6 +36,9 @@
       ],
       "@beauty-platform-validated/admin-feature-catalog-mgmt": [
         "./libs/admin/feature-catalog-mgmt/src/index.ts"
+      ],
+      "@beauty-platform-validated/storefront-feature-checkout": [
+        "./libs/storefront/feature-checkout/src/index.ts"
       ]
     }
   },
