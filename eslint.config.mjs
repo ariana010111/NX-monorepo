@@ -79,7 +79,10 @@ export default [
   },
   {
     // Repository files and the prisma module itself are the one exception.
-    files: ['apps/api/src/**/*.repository.ts', 'apps/api/src/app/prisma/**/*.ts'],
+    files: [
+      'apps/api/src/**/*.repository.ts',
+      'apps/api/src/app/prisma/**/*.ts',
+    ],
     rules: {
       'no-restricted-imports': 'off',
     },

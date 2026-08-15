@@ -9,12 +9,13 @@ export interface CartLine {
 }
 
 /**
- * NOT providedIn: 'root'. Provided at the route level (see storefront
- * app.routes.ts) so its lifetime matches the cart feature being active,
- * not the whole app — this is what prevents it from becoming a hidden
- * global store.
+ * Genuinely app-wide state — needed by both feature-catalog (add to bag)
+ * and feature-cart (view bag), which is exactly the case that justifies
+ * providedIn: 'root' as the documented exception to "facades are
+ * route-scoped." Lives in data-access (not a feature lib) specifically so
+ * multiple features are allowed to depend on it under the boundary rules.
  */
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class CartFacade {
   private readonly _items = signal<CartLine[]>([]);
   readonly items = this._items.asReadonly();

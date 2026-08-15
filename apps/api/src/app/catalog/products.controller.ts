@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiCreatedResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiQuery } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
@@ -11,8 +11,17 @@ export class ProductsController {
 
   @Get()
   @ApiOkResponse({ type: ProductResponseDto, isArray: true })
-  list(@Query('page') page?: number, @Query('pageSize') pageSize?: number) {
-    return this.productsService.list(page, pageSize);
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'pageSize', required: false, type: Number })
+  @ApiQuery({ name: 'category', required: false, type: String })
+  @ApiQuery({ name: 'brand', required: false, type: String })
+  list(
+    @Query('page') page?: number,
+    @Query('pageSize') pageSize?: number,
+    @Query('category') category?: string,
+    @Query('brand') brand?: string,
+  ) {
+    return this.productsService.list(page, pageSize, category, brand);
   }
 
   @Get(':slug')

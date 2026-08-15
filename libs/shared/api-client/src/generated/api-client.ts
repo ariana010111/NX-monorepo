@@ -24,12 +24,40 @@ import {
   Observable
 } from 'rxjs';
 
+export interface ProductImageDto {
+  url: string;
+  altText?: string;
+  isPrimary: boolean;
+}
+
+export interface VariantAttributeDto {
+  attributeName: string;
+  value: string;
+  colorHex?: string;
+}
+
+export interface ProductVariantDto {
+  id: string;
+  sku: string;
+  price: number;
+  compareAtPrice?: number;
+  isActive: boolean;
+  attributes: VariantAttributeDto[];
+  imageUrl?: string;
+}
+
 export interface ProductResponseDto {
   id: string;
   name: string;
   slug: string;
   description?: string;
+  shortDescription?: string;
+  brandName?: string;
+  brandSlug?: string;
   status: string;
+  images: ProductImageDto[];
+  variants: ProductVariantDto[];
+  fromPrice?: number;
 }
 
 export interface CreateProductDto {
@@ -38,9 +66,28 @@ export interface CreateProductDto {
   description?: string;
 }
 
+export interface CategoryResponseDto {
+  id: string;
+  name: string;
+  slug: string;
+  /** @nullable */
+  parentId?: string | null;
+  imageUrl?: string;
+  children?: CategoryResponseDto[];
+}
+
+export interface BrandResponseDto {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl?: string;
+}
+
 export type ProductsControllerListParams = {
-page: number;
-pageSize: number;
+page?: number;
+pageSize?: number;
+category?: string;
+brand?: string;
 };
 
 interface HttpClientOptions {
@@ -182,11 +229,11 @@ export class BeautyPlatformAPIService {
     );
   }
 
- productsControllerList<TData = ProductResponseDto[]>(params: ProductsControllerListParams, options?: HttpClientBodyOptions): Observable<TData>;
- productsControllerList<TData = ProductResponseDto[]>(params: ProductsControllerListParams, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- productsControllerList<TData = ProductResponseDto[]>(params: ProductsControllerListParams, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+ productsControllerList<TData = ProductResponseDto[]>(params?: ProductsControllerListParams, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerList<TData = ProductResponseDto[]>(params?: ProductsControllerListParams, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerList<TData = ProductResponseDto[]>(params?: ProductsControllerListParams, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
   productsControllerList<TData = ProductResponseDto[]>(
-    params: ProductsControllerListParams, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    params?: ProductsControllerListParams, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     const filteredParams = filterParams({...params, ...options?.params}, new Set<string>([]));
 
     if (options?.observe === 'events') {
@@ -274,6 +321,130 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/products/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  categoriesControllerGetTree<TData = CategoryResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/categories`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/categories`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/categories`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ categoriesControllerGetBySlug<TData = CategoryResponseDto>(slug: string, options?: HttpClientBodyOptions): Observable<TData>;
+ categoriesControllerGetBySlug<TData = CategoryResponseDto>(slug: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ categoriesControllerGetBySlug<TData = CategoryResponseDto>(slug: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  categoriesControllerGetBySlug<TData = CategoryResponseDto>(
+    slug: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/categories/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/categories/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/categories/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ brandsControllerFindAll<TData = BrandResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ brandsControllerFindAll<TData = BrandResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ brandsControllerFindAll<TData = BrandResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  brandsControllerFindAll<TData = BrandResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/brands`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/brands`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/brands`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ brandsControllerGetBySlug<TData = BrandResponseDto>(slug: string, options?: HttpClientBodyOptions): Observable<TData>;
+ brandsControllerGetBySlug<TData = BrandResponseDto>(slug: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ brandsControllerGetBySlug<TData = BrandResponseDto>(slug: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  brandsControllerGetBySlug<TData = BrandResponseDto>(
+    slug: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/brands/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/brands/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/brands/${slug}`,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }

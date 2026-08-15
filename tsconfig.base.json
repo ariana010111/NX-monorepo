@@ -27,6 +27,9 @@
       ],
       "@beauty-platform-validated/storefront-feature-cart": [
         "./libs/storefront/feature-cart/src/index.ts"
+      ],
+      "@beauty-platform-validated/storefront-feature-catalog": [
+        "./libs/storefront/feature-catalog/src/index.ts"
       ]
     }
   },

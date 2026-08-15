@@ -142,3 +142,51 @@ npx nx run-many -t lint test build --projects=api,storefront,admin,shared-api-cl
 npx ts-node -O '{"module":"commonjs","types":["node"]}' apps/api/scripts/generate-openapi-spec.ts
 ./node_modules/.bin/orval --config libs/shared/api-client/orval.config.ts
 ```
+
+---
+
+## Catalog vertical slice — session 2
+
+Extended the validated foundation with a real, full-stack catalog slice:
+Product/Category/Brand → repository → service → controller → OpenAPI →
+Orval → Angular client → storefront data-access → catalog listing → PDP
+with shade/size variant selection → CartFacade.addItem().
+
+**All 9 meaningful projects pass `lint test build`, for real, as of this commit.**
+
+### New real problems found and fixed while building this slice
+
+1. **A genuine architecture bug caught by the boundary rules working as
+   designed**: `CartFacade` was placed inside `feature-cart` (`type:feature`).
+   When `feature-catalog` needed it for "Add to Bag," `nx lint` correctly
+   rejected the import — `type:feature` cannot depend on `type:feature`.
+   This exposed an inconsistency in the original design: I'd documented
+   cart as a legitimate `providedIn: 'root'` exception one turn earlier,
+   but then implemented it as a route-scoped facade anyway. Fixed by moving
+   `CartFacade` into `storefront-data-access` (`type:data-access`, which
+   both features may depend on) and making it genuinely root-provided.
+   Proven with a real test: adding an item via one component instance and
+   reading it back via a second, independently-created component instance.
+
+2. **`@Query()` params without `@ApiQuery()` decorators produce non-optional
+   types in the generated client** — a real `TS2769` broke the storefront
+   build. Nest's Swagger integration can't infer optionality from plain
+   `@Query('foo') foo?: string` alone; it needs explicit `@ApiQuery({
+   required: false })`. Fixed on the controller, regenerated the spec and
+   client, confirmed the fix in the actual generated `.d.ts` output before
+   rebuilding.
+
+3. **SSR prerendering a route that fetches live data fails at build time**,
+   because no backend is running during `nx build` — the request hangs and
+   times out, which tears down the entire prerender worker pool (collateral-
+   damaging unrelated routes like `/cart` in the same build). Fixed by
+   setting `RenderMode.Server` (render per real request) instead of
+   `RenderMode.Prerender` (bake into the build) for both the catalog listing
+   and the PDP — the correct choice architecturally anyway, since product
+   data changes independently of deploys.
+
+4. **Deleting/moving a component's spec file during refactors silently
+   drops a project's test coverage to zero** — `nx test` correctly caught
+   this as a hard failure (`No test files found`) for `feature-cart` after
+   `CartFacade`'s spec moved with it to `data-access`. Added a real
+   replacement test for `CartPageComponent`.

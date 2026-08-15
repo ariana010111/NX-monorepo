@@ -13,8 +13,8 @@ export class ProductsService {
     return product;
   }
 
-  list(page = 1, pageSize = 24): Promise<ProductResponseDto[]> {
-    return this.productsRepo.findMany(page, pageSize);
+  list(page = 1, pageSize = 24, categorySlug?: string, brandSlug?: string): Promise<ProductResponseDto[]> {
+    return this.productsRepo.findMany({ page, pageSize, categorySlug, brandSlug });
   }
 
   create(dto: CreateProductDto): Promise<ProductResponseDto> {
