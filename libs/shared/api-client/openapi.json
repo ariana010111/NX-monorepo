@@ -481,6 +481,28 @@
       }
     },
     "/orders": {
+      "get": {
+        "operationId": "OrdersController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrderResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "orders"
+        ]
+      },
       "post": {
         "operationId": "OrdersController_create",
         "parameters": [],
@@ -524,6 +546,46 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/{id}/status": {
+      "patch": {
+        "operationId": "OrdersController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderStatusDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -872,6 +934,79 @@
           "quantityChange"
         ]
       },
+      "OrderItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "variantLabel": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "number"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "lineTotal": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "variantId",
+          "productName",
+          "variantLabel",
+          "unitPrice",
+          "quantity",
+          "lineTotal"
+        ]
+      },
+      "OrderResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "subtotal": {
+            "type": "number"
+          },
+          "grandTotal": {
+            "type": "number"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemResponseDto"
+            }
+          },
+          "placedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "orderNumber",
+          "email",
+          "status",
+          "subtotal",
+          "grandTotal",
+          "items",
+          "placedAt"
+        ]
+      },
       "ShippingAddressInputDto": {
         "type": "object",
         "properties": {
@@ -948,77 +1083,24 @@
           "items"
         ]
       },
-      "OrderItemResponseDto": {
+      "UpdateOrderStatusDto": {
         "type": "object",
         "properties": {
-          "variantId": {
-            "type": "string"
-          },
-          "productName": {
-            "type": "string"
-          },
-          "variantLabel": {
-            "type": "string"
-          },
-          "unitPrice": {
-            "type": "number"
-          },
-          "quantity": {
-            "type": "number"
-          },
-          "lineTotal": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "variantId",
-          "productName",
-          "variantLabel",
-          "unitPrice",
-          "quantity",
-          "lineTotal"
-        ]
-      },
-      "OrderResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "orderNumber": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
           "status": {
-            "type": "string"
-          },
-          "subtotal": {
-            "type": "number"
-          },
-          "grandTotal": {
-            "type": "number"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OrderItemResponseDto"
-            }
-          },
-          "placedAt": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "PENDING_PAYMENT",
+              "PAID",
+              "PROCESSING",
+              "SHIPPED",
+              "DELIVERED",
+              "CANCELLED",
+              "REFUNDED"
+            ]
           }
         },
         "required": [
-          "id",
-          "orderNumber",
-          "email",
-          "status",
-          "subtotal",
-          "grandTotal",
-          "items",
-          "placedAt"
+          "status"
         ]
       }
     }

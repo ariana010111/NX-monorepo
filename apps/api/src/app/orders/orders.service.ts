@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { OrdersRepository } from './orders.repository';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { InventoryService } from '../inventory/inventory.service';
 
 @Injectable()
@@ -24,5 +25,15 @@ export class OrdersService {
     const order = await this.ordersRepo.findById(id);
     if (!order) throw new NotFoundException(`Order "${id}" not found`);
     return order;
+  }
+
+  list() {
+    return this.ordersRepo.findAll();
+  }
+
+  async updateStatus(id: string, dto: UpdateOrderStatusDto) {
+    const updated = await this.ordersRepo.updateStatus(id, dto.status);
+    if (!updated) throw new NotFoundException(`Order "${id}" not found`);
+    return updated;
   }
 }

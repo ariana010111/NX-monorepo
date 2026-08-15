@@ -39,6 +39,9 @@
       ],
       "@beauty-platform-validated/storefront-feature-checkout": [
         "./libs/storefront/feature-checkout/src/index.ts"
+      ],
+      "@beauty-platform-validated/admin-feature-orders-mgmt": [
+        "./libs/admin/feature-orders-mgmt/src/index.ts"
       ]
     }
   },

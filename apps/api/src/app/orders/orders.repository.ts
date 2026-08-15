@@ -5,6 +5,8 @@ import { OrderResponseDto } from './dto/order-response.dto';
 export abstract class OrdersRepository {
   abstract create(dto: CreateOrderDto): Promise<OrderResponseDto>;
   abstract findById(id: string): Promise<OrderResponseDto | null>;
+  abstract findAll(): Promise<OrderResponseDto[]>;
+  abstract updateStatus(id: string, status: string): Promise<OrderResponseDto | null>;
 }
 
 /**
@@ -47,5 +49,17 @@ export class InMemoryOrdersRepository implements OrdersRepository {
 
   async findById(id: string) {
     return this.orders.find((o) => o.id === id) ?? null;
+  }
+
+  async findAll() {
+    // Most recent first — the natural default for an admin order queue.
+    return [...this.orders].reverse();
+  }
+
+  async updateStatus(id: string, status: string) {
+    const order = this.orders.find((o) => o.id === id);
+    if (!order) return null;
+    order.status = status;
+    return order;
   }
 }

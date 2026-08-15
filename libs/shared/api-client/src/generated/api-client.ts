@@ -126,6 +126,26 @@ export interface AdjustStockDto {
   note?: string;
 }
 
+export interface OrderItemResponseDto {
+  variantId: string;
+  productName: string;
+  variantLabel: string;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+}
+
+export interface OrderResponseDto {
+  id: string;
+  orderNumber: string;
+  email: string;
+  status: string;
+  subtotal: number;
+  grandTotal: number;
+  items: OrderItemResponseDto[];
+  placedAt: string;
+}
+
 export interface ShippingAddressInputDto {
   fullName: string;
   line1: string;
@@ -148,24 +168,21 @@ export interface CreateOrderDto {
   items: OrderItemInputDto[];
 }
 
-export interface OrderItemResponseDto {
-  variantId: string;
-  productName: string;
-  variantLabel: string;
-  unitPrice: number;
-  quantity: number;
-  lineTotal: number;
-}
+export type UpdateOrderStatusDtoStatus = typeof UpdateOrderStatusDtoStatus[keyof typeof UpdateOrderStatusDtoStatus];
 
-export interface OrderResponseDto {
-  id: string;
-  orderNumber: string;
-  email: string;
-  status: string;
-  subtotal: number;
-  grandTotal: number;
-  items: OrderItemResponseDto[];
-  placedAt: string;
+
+export const UpdateOrderStatusDtoStatus = {
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  PAID: 'PAID',
+  PROCESSING: 'PROCESSING',
+  SHIPPED: 'SHIPPED',
+  DELIVERED: 'DELIVERED',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED',
+} as const;
+
+export interface UpdateOrderStatusDto {
+  status: UpdateOrderStatusDtoStatus;
 }
 
 export type ProductsControllerListParams = {
@@ -804,6 +821,37 @@ export class BeautyPlatformAPIService {
     );
   }
 
+ ordersControllerList<TData = OrderResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ ordersControllerList<TData = OrderResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ ordersControllerList<TData = OrderResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  ordersControllerList<TData = OrderResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/orders`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/orders`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/orders`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
  ordersControllerCreate<TData = OrderResponseDto>(createOrderDto: CreateOrderDto, options?: HttpClientBodyOptions): Observable<TData>;
  ordersControllerCreate<TData = OrderResponseDto>(createOrderDto: CreateOrderDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
  ordersControllerCreate<TData = OrderResponseDto>(createOrderDto: CreateOrderDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
@@ -863,6 +911,44 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/orders/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ ordersControllerUpdateStatus<TData = OrderResponseDto>(id: string,
+    updateOrderStatusDto: UpdateOrderStatusDto, options?: HttpClientBodyOptions): Observable<TData>;
+ ordersControllerUpdateStatus<TData = OrderResponseDto>(id: string,
+    updateOrderStatusDto: UpdateOrderStatusDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ ordersControllerUpdateStatus<TData = OrderResponseDto>(id: string,
+    updateOrderStatusDto: UpdateOrderStatusDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  ordersControllerUpdateStatus<TData = OrderResponseDto>(
+    id: string,
+    updateOrderStatusDto: UpdateOrderStatusDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/orders/${id}/status`,
+      updateOrderStatusDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/orders/${id}/status`,
+      updateOrderStatusDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/orders/${id}/status`,
+      updateOrderStatusDto,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }
