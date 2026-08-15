@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { CategoryResponseDto } from './dto/category-response.dto';
+import { CreateCategoryDto } from './dto/create-category.dto';
 
 export abstract class CategoriesRepository {
   abstract findTree(): Promise<CategoryResponseDto[]>;
   abstract findBySlug(slug: string): Promise<CategoryResponseDto | null>;
+  abstract create(dto: CreateCategoryDto): Promise<CategoryResponseDto>;
 }
 
 /**
@@ -44,5 +46,18 @@ export class InMemoryCategoriesRepository implements CategoriesRepository {
   async findBySlug(slug: string) {
     const flat = this.categories.flatMap((c) => [c, ...(c.children ?? [])]);
     return flat.find((c) => c.slug === slug) ?? null;
+  }
+
+  async create(dto: CreateCategoryDto) {
+    const created: CategoryResponseDto = { id: `c${Date.now()}`, parentId: dto.parentId ?? null, ...dto };
+    if (dto.parentId) {
+      const parent = this.categories.find((c) => c.id === dto.parentId);
+      if (parent) {
+        parent.children = [...(parent.children ?? []), created];
+        return created;
+      }
+    }
+    this.categories.push(created);
+    return created;
   }
 }

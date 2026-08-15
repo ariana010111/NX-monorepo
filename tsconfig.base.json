@@ -30,6 +30,12 @@
       ],
       "@beauty-platform-validated/storefront-feature-catalog": [
         "./libs/storefront/feature-catalog/src/index.ts"
+      ],
+      "@beauty-platform-validated/admin-data-access": [
+        "./libs/admin/data-access/src/index.ts"
+      ],
+      "@beauty-platform-validated/admin-feature-catalog-mgmt": [
+        "./libs/admin/feature-catalog-mgmt/src/index.ts"
       ]
     }
   },

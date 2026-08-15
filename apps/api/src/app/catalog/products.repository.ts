@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 export abstract class ProductsRepository {
   abstract findBySlug(slug: string): Promise<ProductResponseDto | null>;
+  abstract findById(id: string): Promise<ProductResponseDto | null>;
   abstract findMany(params: { page: number; pageSize: number; categorySlug?: string; brandSlug?: string }): Promise<ProductResponseDto[]>;
   abstract create(dto: CreateProductDto): Promise<ProductResponseDto>;
+  abstract update(id: string, dto: UpdateProductDto): Promise<ProductResponseDto | null>;
+  abstract delete(id: string): Promise<boolean>;
 }
 
 /**
@@ -79,6 +83,10 @@ export class InMemoryProductsRepository implements ProductsRepository {
     return this.products.find((p) => p.slug === slug) ?? null;
   }
 
+  async findById(id: string) {
+    return this.products.find((p) => p.id === id) ?? null;
+  }
+
   async findMany(params: { page: number; pageSize: number; categorySlug?: string; brandSlug?: string }) {
     let results = this.products;
     if (params.brandSlug) results = results.filter((p) => p.brandSlug === params.brandSlug);
@@ -98,5 +106,19 @@ export class InMemoryProductsRepository implements ProductsRepository {
     };
     this.products.push(created);
     return created;
+  }
+
+  async update(id: string, dto: UpdateProductDto) {
+    const index = this.products.findIndex((p) => p.id === id);
+    if (index === -1) return null;
+    this.products[index] = { ...this.products[index], ...dto };
+    return this.products[index];
+  }
+
+  async delete(id: string) {
+    const index = this.products.findIndex((p) => p.id === id);
+    if (index === -1) return false;
+    this.products.splice(index, 1);
+    return true;
   }
 }

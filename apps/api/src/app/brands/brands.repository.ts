@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { BrandResponseDto } from './dto/brand-response.dto';
+import { CreateBrandDto } from './dto/create-brand.dto';
 
 export abstract class BrandsRepository {
   abstract findAll(): Promise<BrandResponseDto[]>;
   abstract findBySlug(slug: string): Promise<BrandResponseDto | null>;
+  abstract create(dto: CreateBrandDto): Promise<BrandResponseDto>;
 }
 
 /** TEMPORARY in-memory implementation — same pattern as ProductsRepository. */
@@ -19,5 +21,10 @@ export class InMemoryBrandsRepository implements BrandsRepository {
   }
   async findBySlug(slug: string) {
     return this.brands.find((b) => b.slug === slug) ?? null;
+  }
+  async create(dto: CreateBrandDto) {
+    const created: BrandResponseDto = { id: `b${Date.now()}`, ...dto };
+    this.brands.push(created);
+    return created;
   }
 }

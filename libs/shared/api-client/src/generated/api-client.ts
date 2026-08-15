@@ -66,6 +66,22 @@ export interface CreateProductDto {
   description?: string;
 }
 
+export type UpdateProductDtoStatus = typeof UpdateProductDtoStatus[keyof typeof UpdateProductDtoStatus];
+
+
+export const UpdateProductDtoStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED',
+} as const;
+
+export interface UpdateProductDto {
+  name?: string;
+  description?: string;
+  shortDescription?: string;
+  status?: UpdateProductDtoStatus;
+}
+
 export interface CategoryResponseDto {
   id: string;
   name: string;
@@ -76,8 +92,20 @@ export interface CategoryResponseDto {
   children?: CategoryResponseDto[];
 }
 
+export interface CreateCategoryDto {
+  name: string;
+  slug: string;
+  parentId?: string;
+}
+
 export interface BrandResponseDto {
   id: string;
+  name: string;
+  slug: string;
+  logoUrl?: string;
+}
+
+export interface CreateBrandDto {
   name: string;
   slug: string;
   logoUrl?: string;
@@ -296,6 +324,37 @@ export class BeautyPlatformAPIService {
     );
   }
 
+ productsControllerGetById<TData = ProductResponseDto>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerGetById<TData = ProductResponseDto>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerGetById<TData = ProductResponseDto>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  productsControllerGetById<TData = ProductResponseDto>(
+    id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/products/by-id/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/products/by-id/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/products/by-id/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
  productsControllerGetBySlug<TData = ProductResponseDto>(slug: string, options?: HttpClientBodyOptions): Observable<TData>;
  productsControllerGetBySlug<TData = ProductResponseDto>(slug: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
  productsControllerGetBySlug<TData = ProductResponseDto>(slug: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
@@ -327,6 +386,75 @@ export class BeautyPlatformAPIService {
     );
   }
 
+ productsControllerUpdate<TData = ProductResponseDto>(id: string,
+    updateProductDto: UpdateProductDto, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerUpdate<TData = ProductResponseDto>(id: string,
+    updateProductDto: UpdateProductDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerUpdate<TData = ProductResponseDto>(id: string,
+    updateProductDto: UpdateProductDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  productsControllerUpdate<TData = ProductResponseDto>(
+    id: string,
+    updateProductDto: UpdateProductDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/products/${id}`,
+      updateProductDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/products/${id}`,
+      updateProductDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/products/${id}`,
+      updateProductDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ productsControllerDelete<TData = void>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerDelete<TData = void>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerDelete<TData = void>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  productsControllerDelete<TData = void>(
+    id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.delete<TData>(
+      `/products/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.delete<TData>(
+      `/products/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.delete<TData>(
+      `/products/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
  categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
  categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
  categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
@@ -352,6 +480,40 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/categories`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ categoriesControllerCreate<TData = CategoryResponseDto>(createCategoryDto: CreateCategoryDto, options?: HttpClientBodyOptions): Observable<TData>;
+ categoriesControllerCreate<TData = CategoryResponseDto>(createCategoryDto: CreateCategoryDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ categoriesControllerCreate<TData = CategoryResponseDto>(createCategoryDto: CreateCategoryDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  categoriesControllerCreate<TData = CategoryResponseDto>(
+    createCategoryDto: CreateCategoryDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/categories`,
+      createCategoryDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/categories`,
+      createCategoryDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/categories`,
+      createCategoryDto,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }
@@ -414,6 +576,40 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/brands`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ brandsControllerCreate<TData = BrandResponseDto>(createBrandDto: CreateBrandDto, options?: HttpClientBodyOptions): Observable<TData>;
+ brandsControllerCreate<TData = BrandResponseDto>(createBrandDto: CreateBrandDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ brandsControllerCreate<TData = BrandResponseDto>(createBrandDto: CreateBrandDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  brandsControllerCreate<TData = BrandResponseDto>(
+    createBrandDto: CreateBrandDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/brands`,
+      createBrandDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/brands`,
+      createBrandDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/brands`,
+      createBrandDto,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }

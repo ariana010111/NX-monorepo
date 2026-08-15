@@ -190,3 +190,38 @@ with shade/size variant selection → CartFacade.addItem().
    this as a hard failure (`No test files found`) for `feature-cart` after
    `CartFacade`'s spec moved with it to `data-access`. Added a real
    replacement test for `CartPageComponent`.
+
+---
+
+## Admin catalog management — session 3
+
+Extended the API with write operations (update/delete products, create
+categories/brands) and built the admin app's first real feature:
+product list (with delete) + Reactive Forms create/edit, using the
+same repository/facade/generated-client patterns proven in sessions 1–2.
+
+**All 11 meaningful projects pass `lint test build`, for real, from a
+fully clean (`--skip-nx-cache`) run, as of this commit.**
+
+### New real problems found and fixed
+
+1. **`input({ alias: 'id' })` is disallowed by Angular's lint convention**
+   (`@angular-eslint/no-input-rename`) — caught immediately by `nx lint`.
+   Fixed by naming the input `id` directly rather than aliasing, which also
+   simplified the route wiring (no alias to reason about).
+2. **Orval generates a strict const-object union type for enum-like DTO
+   fields** (`UpdateProductDtoStatus`), not a plain `string` — a real
+   `TS2322` at build time when the form's status control was typed as
+   `string`. This is actually a good thing the generated client caught: it
+   would have let an invalid status string reach the API undetected.
+   Fixed by importing and using the real generated type in the form control.
+3. **Deleting the default Nx-generated `nx-welcome` component without
+   updating its `app.spec.ts`** broke `admin:test` (and would have broken
+   `storefront:test` too, caught proactively) with a real module-resolution
+   error. Fixed both apps' root component and spec together.
+
+### Still stub/pending, unchanged from before
+Every Nest module other than catalog/categories/brands; storefront
+checkout/account features; admin orders/customers/analytics features;
+the real Prisma-backed repositories (still blocked on local
+`npx prisma generate` — see session 1 notes, unchanged).

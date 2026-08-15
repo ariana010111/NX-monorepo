@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { BrandsRepository } from './brands.repository';
+import { CreateBrandDto } from './dto/create-brand.dto';
 
 @Injectable()
 export class BrandsService {
@@ -13,5 +14,9 @@ export class BrandsService {
     const brand = await this.brandsRepo.findBySlug(slug);
     if (!brand) throw new NotFoundException(`Brand "${slug}" not found`);
     return brand;
+  }
+
+  create(dto: CreateBrandDto) {
+    return this.brandsRepo.create(dto);
   }
 }

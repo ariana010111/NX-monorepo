@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, HttpCode } from '@nestjs/common';
+import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiQuery, ApiNoContentResponse } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 
 @ApiTags('products')
@@ -24,6 +25,12 @@ export class ProductsController {
     return this.productsService.list(page, pageSize, category, brand);
   }
 
+  @Get('by-id/:id')
+  @ApiOkResponse({ type: ProductResponseDto })
+  getById(@Param('id') id: string) {
+    return this.productsService.getById(id);
+  }
+
   @Get(':slug')
   @ApiOkResponse({ type: ProductResponseDto })
   getBySlug(@Param('slug') slug: string) {
@@ -34,5 +41,18 @@ export class ProductsController {
   @ApiCreatedResponse({ type: ProductResponseDto })
   create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
+  }
+
+  @Patch(':id')
+  @ApiOkResponse({ type: ProductResponseDto })
+  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    return this.productsService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  delete(@Param('id') id: string) {
+    return this.productsService.delete(id);
   }
 }

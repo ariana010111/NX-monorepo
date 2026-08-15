@@ -1,7 +1,8 @@
-import { Controller, Get, Param } from '@nestjs/common';
-import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { ApiTags, ApiOkResponse, ApiCreatedResponse } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CategoryResponseDto } from './dto/category-response.dto';
+import { CreateCategoryDto } from './dto/create-category.dto';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -18,5 +19,11 @@ export class CategoriesController {
   @ApiOkResponse({ type: CategoryResponseDto })
   getBySlug(@Param('slug') slug: string) {
     return this.categoriesService.getBySlug(slug);
+  }
+
+  @Post()
+  @ApiCreatedResponse({ type: CategoryResponseDto })
+  create(@Body() dto: CreateCategoryDto) {
+    return this.categoriesService.create(dto);
   }
 }
