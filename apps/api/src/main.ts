@@ -9,6 +9,16 @@ async function bootstrap() {
   app.setGlobalPrefix(globalPrefix);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
+  // Storefront and admin run on different ports (real browser apps, not
+  // the same origin as this API) — without this, every real request from
+  // either Angular app is silently blocked by the browser's CORS policy,
+  // which is invisible in any of the in-process supertest verification
+  // done so far since supertest doesn't enforce CORS at all.
+  app.enableCors({
+    origin: [process.env.STOREFRONT_URL ?? 'http://localhost:4200', process.env.ADMIN_URL ?? 'http://localhost:4201'],
+    credentials: true,
+  });
+
   const config = new DocumentBuilder().setTitle('Beauty Platform API').setVersion('1.0').addBearerAuth().build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);

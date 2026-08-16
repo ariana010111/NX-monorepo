@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body } from '@nestjs/common';
+import { Controller, Post, Get, Body, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiCreatedResponse, ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -21,6 +21,7 @@ export class AuthController {
 
   @Public()
   @Post('login')
+  @HttpCode(200) // logging in doesn't create a resource - 201 is the wrong default here
   @ApiOkResponse({ type: AuthResponseDto })
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);

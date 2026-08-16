@@ -403,3 +403,50 @@ converted into a real spec — that should happen next), and effectively
 all component-level rendering/template logic across both apps. Facade and
 service logic — the highest-risk layer — is now the best-covered part of
 the codebase; UI-level testing is the next gap.
+
+---
+
+## Critical functional fixes: making the admin→customer loop actually work over HTTP
+
+Direct feedback: verify the *actual functional loop* — admin creates a
+product via a real POST, a customer sees it via a real GET — over real
+HTTP between two separate running apps, not just "it compiles." That
+surfaced three genuine, would-have-been-silent bugs:
+
+1. **The generated Angular client emits bare relative paths** (`/products`,
+   no host, no `/api` prefix). Unnoticed by every prior verification
+   because all of it ran in-process via `supertest` against the app's
+   `HttpServer` directly — which never involves a browser resolving a
+   relative URL against its own origin. In a real browser, `/products`
+   resolves to `http://localhost:4200/products` (the *Angular app's own
+   origin*), not `http://localhost:3000/api/products` (the actual API).
+   Fixed with a new `apiUrlInterceptor` in both apps that rewrites any
+   relative request URL to the real API origin + `/api` prefix, ordered
+   before `authInterceptor` in the provider chain.
+2. **CORS was never enabled** on the API at all. Even with the URL fixed,
+   every real cross-origin request from either Angular app would have been
+   silently blocked by the browser. `supertest` doesn't enforce CORS, so
+   this was invisible to every test run so far, including the "HTTP-level
+   verified" auth guard tests from the previous slice. Fixed with
+   `app.enableCors(...)` scoped to the two known dev origins.
+3. **Both Angular apps defaulted to the same dev-server port** (`4200`) —
+   nothing prevented them colliding the moment someone actually ran both
+   at once, which is required to exercise the exact flow being asked
+   about. Fixed by pinning `admin` to port `4201`.
+
+**Re-verified the full loop for real** after fixing all three, using the
+exact bootstrap `main.ts` uses (prefix + CORS), not a simplified harness:
+admin logs in → `POST /api/products` with a brand-new product → a fully
+anonymous request (no Authorization header at all) finds it via both
+`GET /api/products` (list) and `GET /api/products/:slug` (detail) → a
+matching anonymous `POST` attempt is correctly rejected with 401. All five
+assertions passed. Along the way, also caught and fixed a smaller real bug:
+`POST /auth/login` was returning NestJS's default `201 Created`, which is
+wrong for an endpoint that doesn't create a resource — now explicitly `200`.
+
+**Still a known limitation, not fixed**: the API origin
+(`http://localhost:3000/api`) is currently hardcoded in
+`apiUrlInterceptor` in both apps, clearly marked with a TODO. This is fine
+for local development but must become a real `environment.ts` file-replacement
+setup before any deployment — a hardcoded `localhost` URL cannot work once
+these apps aren't all running on one machine.
