@@ -352,3 +352,54 @@ All 14 real projects pass `lint` + `build` as of this commit.
 - Zero automated test coverage on any of this — same deferred-tests note
   as the last three slices. Auth is the single highest-value place to
   actually write tests next, given how much this system now guards.
+
+---
+
+## Real test coverage added (this session)
+
+`npx nx run-many -t lint test build` across all 14 projects: **all green**,
+with 46 real, executed, passing tests where there were previously close to
+zero on anything built in sessions 3–5.
+
+**Backend (Jest — added via the real `@nx/jest:configuration` generator,
+since the `api` app had no test target at all until this session):**
+- `AuthService` (5 tests): register success, duplicate-email rejection,
+  wrong-password rejection, nonexistent-email rejection, successful login —
+  using a real `bcrypt` hash in the test fixture rather than mocking
+  `bcrypt.compare` away, so the actual comparison logic is exercised.
+- `RolesGuard` (4 tests): no-metadata passthrough, correct-role allow,
+  wrong-role reject, no-user-at-all reject.
+- `InventoryService.reserveForOrder` (5 tests): the all-or-nothing
+  invariant — confirmed that when one line item of a multi-item order lacks
+  stock, **zero** reservations happen for any item, not just the failing
+  one — plus both exact-boundary cases (available+1 fails, available
+  exactly succeeds). This replaces the throwaway manual smoke test from
+  the inventory session with a permanent regression test.
+- `OrdersService.create` (4 tests): proved the actual call ordering
+  (inventory reserved before the order is persisted, not after), and that
+  a reservation failure means the order repository's `create` is never
+  called at all.
+
+**Frontend (Vitest — confirmed this session that libs use Vitest, not
+Jest; `jest.fn()` silently doesn't exist as a global here, it's `vi.fn()`
+from the `vitest` package — a real `ReferenceError` caught this immediately
+on the first new frontend spec written):**
+- `WishlistFacade` (4), `AuthFacade` (4, using `HttpTestingController` for
+  real HTTP mocking and asserting on actual `localStorage` state).
+- `CheckoutFacade` (4): the most valuable of this batch — proved the cart
+  is genuinely cleared only on success and left untouched on failure, by
+  constructing a real `CartFacade` alongside the mocked API rather than
+  mocking cart state too.
+- `LoginComponent` (4), `OrderListFacade` (2) — the latter required
+  `vi.waitFor(...)` around the post-reload assertion, since `resource()`'s
+  `reload()` re-triggers the loader asynchronously and the naive synchronous
+  assertion right after `await` genuinely failed on the first run.
+
+**What's still untested**: `ProductListFacade`, `ProductFormComponent`,
+`TaxonomyFacade`, `InventoryFacade` (admin catalog-mgmt lib), the
+`AuthController`/guards at the full HTTP level as a permanent suite (the
+supertest verification from the auth session was manual and deleted, not
+converted into a real spec — that should happen next), and effectively
+all component-level rendering/template logic across both apps. Facade and
+service logic — the highest-risk layer — is now the best-covered part of
+the codebase; UI-level testing is the next gap.
