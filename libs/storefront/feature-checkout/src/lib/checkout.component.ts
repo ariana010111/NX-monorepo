@@ -3,11 +3,6 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { CheckoutFacade } from './checkout.facade';
 
-/**
- * Reactive Forms owns the shipping address input, per the state-layer
- * rules — the form group is the source of truth until submit, at which
- * point its raw value is handed to the facade.
- */
 @Component({
   selector: 'beauty-checkout',
   standalone: true,
@@ -16,6 +11,9 @@ import { CheckoutFacade } from './checkout.facade';
     @if (facade.placedOrder(); as order) {
       <h1>Thank you!</h1>
       <p>Order {{ order.orderNumber }} confirmed.</p>
+      @if (order.discountTotal) {
+        <p>Discount applied ({{ order.couponCode }}): -{{ order.discountTotal | number: '1.2-2' }}</p>
+      }
       <p>Total: {{ order.grandTotal | number: '1.2-2' }}</p>
     } @else {
       <h1>Checkout</h1>
@@ -26,6 +24,25 @@ import { CheckoutFacade } from './checkout.facade';
         }
       </ul>
       <p>Subtotal: {{ facade.cart.subtotal() | number: '1.2-2' }}</p>
+
+      <div>
+        @if (facade.couponDiscount(); as discount) {
+          <p>
+            Coupon "{{ facade.couponCode() }}" applied: -{{ discount | number: '1.2-2' }}
+            <button type="button" (click)="facade.removeCoupon()">Remove</button>
+          </p>
+        } @else {
+          <input #couponInput placeholder="Coupon code" />
+          <button type="button" [disabled]="facade.isValidatingCoupon()" (click)="onApplyCoupon(couponInput.value)">
+            {{ facade.isValidatingCoupon() ? 'Checking…' : 'Apply' }}
+          </button>
+          @if (facade.couponError(); as couponError) {
+            <p role="alert">{{ couponError }}</p>
+          }
+        }
+      </div>
+
+      <p><strong>Estimated total: {{ facade.grandTotalPreview() | number: '1.2-2' }}</strong></p>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <label>
@@ -67,6 +84,10 @@ export class CheckoutComponent {
       country: ['', Validators.required],
     }),
   });
+
+  onApplyCoupon(code: string) {
+    this.facade.applyCoupon(code);
+  }
 
   onSubmit() {
     if (this.form.invalid) return;

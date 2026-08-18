@@ -606,6 +606,44 @@
         ]
       }
     },
+    "/coupons/{code}/validate": {
+      "get": {
+        "operationId": "CouponsController_validate",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subtotal",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidateCouponResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "coupons"
+        ]
+      }
+    },
     "/orders": {
       "get": {
         "operationId": "OrdersController_list",
@@ -659,6 +697,35 @@
             }
           }
         },
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/me": {
+      "get": {
+        "operationId": "OrdersController_listMine",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrderResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "orders"
         ]
@@ -1153,6 +1220,21 @@
           "quantityChange"
         ]
       },
+      "ValidateCouponResponseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "discountAmount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "code",
+          "discountAmount"
+        ]
+      },
       "OrderItemResponseDto": {
         "type": "object",
         "properties": {
@@ -1196,11 +1278,21 @@
           "email": {
             "type": "string"
           },
+          "userId": {
+            "type": "string",
+            "nullable": true
+          },
           "status": {
             "type": "string"
           },
           "subtotal": {
             "type": "number"
+          },
+          "discountTotal": {
+            "type": "number"
+          },
+          "couponCode": {
+            "type": "string"
           },
           "grandTotal": {
             "type": "number"
@@ -1284,6 +1376,9 @@
         "type": "object",
         "properties": {
           "email": {
+            "type": "string"
+          },
+          "couponCode": {
             "type": "string"
           },
           "shippingAddress": {

@@ -450,3 +450,42 @@ wrong for an endpoint that doesn't create a resource — now explicitly `200`.
 for local development but must become a real `environment.ts` file-replacement
 setup before any deployment — a hardcoded `localhost` URL cannot work once
 these apps aren't all running on one machine.
+
+---
+
+## Coupons + order ownership: verified end to end over real HTTP
+
+Two real gaps closed together, since coupons only matter once checkout is
+trustworthy end to end:
+
+**Coupons**: `CouponsModule` — `GET /coupons/:code/validate?subtotal=X`
+(public, preview-only) and real server-side re-validation inside
+`OrdersService.create` (never trusts a discount amount the client merely
+displayed). Seeded with `WELCOME10` (10% off), `FLAT5` ($5 off $30+), and
+`EXPIRED10` (seeded already-expired, specifically to exercise that path).
+Storefront checkout has a real coupon input wired to `CheckoutFacade`,
+showing the live discount preview and the specific rejection reason
+(expired / minimum not met / not found) rather than a generic error.
+
+**Order ownership**: `OptionalJwtAuthGuard` — a new guard pattern
+(`handleRequest` never throws, so a route stays reachable by guests while
+still populating `req.user` when a valid token is present). Order creation
+and the storefront's own order history both use it. `GET /orders/me`
+requires real auth and filters server-side by the authenticated user's id.
+
+**Verified for real, twice** — not just built:
+1. First pass: coupon math and rejection paths (`WELCOME10` on $100 → 
+   exactly $10 off; `EXPIRED10` → 400 with "expired" in the message;
+   `FLAT5` below its $30 minimum → 400), plus the actual ownership
+   isolation test — two real registered customers, two real orders, and
+   confirmed via `GET /orders/me` that customer A sees only their own
+   order and never customer B's, and vice versa, with an unauthenticated
+   request to the same endpoint correctly getting 401.
+2. Second pass, the full realistic loop in one run: admin creates a
+   product → anonymous customer browses it → a newly-registered customer
+   checks out with a coupon → the order appears in that customer's own
+   `/orders/me` → the admin sees it in the admin queue → the admin updates
+   its status → **the customer is correctly blocked (403) from updating
+   the status themselves**. All 8 checks passed on the real running server.
+
+All 14 real projects pass `lint` + `test` + `build` as of this commit.

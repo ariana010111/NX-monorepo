@@ -151,6 +151,11 @@ export interface AdjustStockDto {
   note?: string;
 }
 
+export interface ValidateCouponResponseDto {
+  code: string;
+  discountAmount: number;
+}
+
 export interface OrderItemResponseDto {
   variantId: string;
   productName: string;
@@ -164,8 +169,12 @@ export interface OrderResponseDto {
   id: string;
   orderNumber: string;
   email: string;
+  /** @nullable */
+  userId?: string | null;
   status: string;
   subtotal: number;
+  discountTotal?: number;
+  couponCode?: string;
   grandTotal: number;
   items: OrderItemResponseDto[];
   placedAt: string;
@@ -189,6 +198,7 @@ export interface OrderItemInputDto {
 
 export interface CreateOrderDto {
   email: string;
+  couponCode?: string;
   shippingAddress: ShippingAddressInputDto;
   items: OrderItemInputDto[];
 }
@@ -215,6 +225,10 @@ page?: number;
 pageSize?: number;
 category?: string;
 brand?: string;
+};
+
+export type CouponsControllerValidateParams = {
+subtotal: number;
 };
 
 interface HttpClientOptions {
@@ -945,6 +959,43 @@ export class BeautyPlatformAPIService {
     );
   }
 
+ couponsControllerValidate<TData = ValidateCouponResponseDto>(code: string,
+    params: CouponsControllerValidateParams, options?: HttpClientBodyOptions): Observable<TData>;
+ couponsControllerValidate<TData = ValidateCouponResponseDto>(code: string,
+    params: CouponsControllerValidateParams, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ couponsControllerValidate<TData = ValidateCouponResponseDto>(code: string,
+    params: CouponsControllerValidateParams, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  couponsControllerValidate<TData = ValidateCouponResponseDto>(
+    code: string,
+    params: CouponsControllerValidateParams, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams({...params, ...options?.params}, new Set<string>([]));
+
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/coupons/${code}/validate`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+        params: filteredParams,}
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/coupons/${code}/validate`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+        params: filteredParams,}
+    );
+    }
+
+    return this.http.get<TData>(
+      `/coupons/${code}/validate`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+        params: filteredParams,}
+    );
+  }
+
  ordersControllerList<TData = OrderResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
  ordersControllerList<TData = OrderResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
  ordersControllerList<TData = OrderResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
@@ -1004,6 +1055,37 @@ export class BeautyPlatformAPIService {
     return this.http.post<TData>(
       `/orders`,
       createOrderDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ ordersControllerListMine<TData = OrderResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ ordersControllerListMine<TData = OrderResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ ordersControllerListMine<TData = OrderResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  ordersControllerListMine<TData = OrderResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/orders/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/orders/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/orders/me`,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }

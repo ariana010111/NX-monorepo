@@ -2,10 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderResponseDto } from './dto/order-response.dto';
 
+export interface CreateOrderInput {
+  dto: CreateOrderDto;
+  userId?: string; // undefined = guest checkout
+  discountTotal: number;
+  couponCode?: string;
+}
+
 export abstract class OrdersRepository {
-  abstract create(dto: CreateOrderDto): Promise<OrderResponseDto>;
+  abstract create(input: CreateOrderInput): Promise<OrderResponseDto>;
   abstract findById(id: string): Promise<OrderResponseDto | null>;
   abstract findAll(): Promise<OrderResponseDto[]>;
+  abstract findByUserId(userId: string): Promise<OrderResponseDto[]>;
   abstract updateStatus(id: string, status: string): Promise<OrderResponseDto | null>;
 }
 
@@ -21,7 +29,7 @@ export class InMemoryOrdersRepository implements OrdersRepository {
   private orders: OrderResponseDto[] = [];
   private counter = 1000;
 
-  async create(dto: CreateOrderDto) {
+  async create({ dto, userId, discountTotal, couponCode }: CreateOrderInput) {
     const items = dto.items.map((item) => ({
       variantId: item.variantId,
       productName: item.productName,
@@ -31,14 +39,18 @@ export class InMemoryOrdersRepository implements OrdersRepository {
       lineTotal: Math.round(item.unitPrice * item.quantity * 100) / 100,
     }));
     const subtotal = Math.round(items.reduce((sum, i) => sum + i.lineTotal, 0) * 100) / 100;
+    const grandTotal = Math.round((subtotal - discountTotal) * 100) / 100;
 
     const order: OrderResponseDto = {
       id: `o${this.counter}`,
       orderNumber: `ORD-2026-${this.counter}`,
       email: dto.email,
+      userId: userId ?? null,
       status: 'PENDING_PAYMENT',
       subtotal,
-      grandTotal: subtotal, // no tax/shipping calc in this slice — see report
+      discountTotal: discountTotal || undefined,
+      couponCode,
+      grandTotal, // tax/shipping calc still out of scope — see report
       items,
       placedAt: new Date().toISOString(),
     };
@@ -54,6 +66,10 @@ export class InMemoryOrdersRepository implements OrdersRepository {
   async findAll() {
     // Most recent first — the natural default for an admin order queue.
     return [...this.orders].reverse();
+  }
+
+  async findByUserId(userId: string) {
+    return this.orders.filter((o) => o.userId === userId).reverse();
   }
 
   async updateStatus(id: string, status: string) {

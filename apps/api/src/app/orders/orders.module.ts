@@ -3,9 +3,10 @@ import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { OrdersRepository, InMemoryOrdersRepository } from './orders.repository';
 import { InventoryModule } from '../inventory/inventory.module';
+import { CouponsModule } from '../coupons/coupons.module';
 
 @Module({
-  imports: [InventoryModule],
+  imports: [InventoryModule, CouponsModule],
   controllers: [OrdersController],
   providers: [OrdersService, { provide: OrdersRepository, useClass: InMemoryOrdersRepository }],
   exports: [OrdersService],

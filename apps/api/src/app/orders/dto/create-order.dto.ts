@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsEmail, IsString, IsNumber, IsPositive, ValidateNested, MinLength } from 'class-validator';
+import { IsArray, IsEmail, IsString, IsNumber, IsPositive, ValidateNested, MinLength, IsOptional } from 'class-validator';
 
 export class OrderItemInputDto {
   @ApiProperty() @IsString() variantId!: string;
@@ -20,6 +20,11 @@ export class ShippingAddressInputDto {
 
 export class CreateOrderDto {
   @ApiProperty() @IsEmail() email!: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  couponCode?: string;
 
   @ApiProperty({ type: ShippingAddressInputDto })
   @ValidateNested()

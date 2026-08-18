@@ -11,4 +11,10 @@ export class OrdersApiService {
   getById(id: string) {
     return this.generated.ordersControllerGetById(id);
   }
+  listMine() {
+    return this.generated.ordersControllerListMine();
+  }
+  validateCoupon(code: string, subtotal: number) {
+    return this.generated.couponsControllerValidate(code, { subtotal });
+  }
 }

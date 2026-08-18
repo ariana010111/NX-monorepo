@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiCreatedResponse, ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -6,6 +6,8 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrderResponseDto } from './dto/order-response.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser, AuthenticatedUser } from '../auth/decorators/current-user.decorator';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -20,22 +22,32 @@ export class OrdersController {
     return this.ordersService.list();
   }
 
-  // Public: guest checkout is a stated requirement, so order creation
-  // can't require a login. There's no user identity attached to orders
-  // yet at all (see VALIDATION_REPORT.md) — attaching the authenticated
-  // user when present, while still allowing guests, is the next step here.
-  @Public()
-  @Post()
-  @ApiCreatedResponse({ type: OrderResponseDto })
-  create(@Body() dto: CreateOrderDto) {
-    return this.ordersService.create(dto);
+  // Real ownership: requires a valid token (not @Public()), returns only
+  // orders belonging to the authenticated user. This is the endpoint that
+  // closes the "no order history" gap — a logged-in customer's own orders,
+  // filtered server-side, not just "trust whatever the client asks for."
+  @ApiBearerAuth()
+  @Get('me')
+  @ApiOkResponse({ type: OrderResponseDto, isArray: true })
+  listMine(@CurrentUser() user: AuthenticatedUser) {
+    return this.ordersService.listForUser(user.userId);
   }
 
-  // Public for the same reason: a guest needs to reach their own order
-  // confirmation page with no account. Real ownership/ verification (e.g.
-  // requiring the order's email to match, or a signed confirmation link)
-  // is a known gap — right now any order id is fetchable by anyone who
-  // has it. Flagged in VALIDATION_REPORT.md as a pre-production blocker.
+  // Public + OptionalJwtAuthGuard: guest checkout must keep working, but a
+  // logged-in customer's order gets their userId attached automatically —
+  // best of both, rather than forcing a choice between "require login" and
+  // "never track ownership."
+  @Public()
+  @UseGuards(OptionalJwtAuthGuard)
+  @Post()
+  @ApiCreatedResponse({ type: OrderResponseDto })
+  create(@CurrentUser() user: AuthenticatedUser | undefined, @Body() dto: CreateOrderDto) {
+    return this.ordersService.create(dto, user?.userId);
+  }
+
+  // Still public by necessity (a guest has no account to check ownership
+  // against) — this remains a documented gap: any order id is fetchable by
+  // anyone who has it. See VALIDATION_REPORT.md.
   @Public()
   @Get(':id')
   @ApiOkResponse({ type: OrderResponseDto })
