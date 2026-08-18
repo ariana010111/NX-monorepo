@@ -489,3 +489,60 @@ requires real auth and filters server-side by the authenticated user's id.
    the status themselves**. All 8 checks passed on the real running server.
 
 All 14 real projects pass `lint` + `test` + `build` as of this commit.
+
+---
+
+## Reviews — the last missing MVP feature, verified end to end over real HTTP
+
+`ReviewsModule` — `GET /reviews/product/:productId` (public, approved-only),
+`POST /reviews` (real auth required, review tied to the authenticated
+user's id, never a client-supplied one), `GET /reviews` and
+`PATCH /reviews/:id/moderate` (admin-only moderation queue).
+
+**The interesting part**: real cross-module verified-purchase logic.
+`ReviewsService` injects both `ProductsService` and `OrdersService` to
+check whether the reviewing user has an order in a real fulfilled state
+(`PAID`/`PROCESSING`/`SHIPPED`/`DELIVERED` — explicitly excluding
+`PENDING_PAYMENT`, `CANCELLED`, `REFUNDED`) containing a variant that
+belongs to *this specific product* — buying a different product doesn't
+earn a verified badge on an unrelated review.
+
+**Real bug caught by the verification script, not the app**: my first
+end-to-end run showed `isVerifiedPurchase: false` for a customer who had
+genuinely just bought the product. The review logic was correct — the
+order was still sitting at `PENDING_PAYMENT` because there's no payment
+gateway wired up yet, and nothing auto-advances an order's status. The fix
+was to the *test*, not the app: advance the order to `PAID` via the admin
+status-update endpoint first, exactly like a real payment webhook would.
+Worth flagging because it's a preview of a real gap — right now, no order
+ever becomes verified-purchase-eligible without an admin manually changing
+its status, since there's no Stripe/payment integration yet.
+
+**Verified for real, 13 checks, all passing**: a genuine buyer's review
+correctly marked verified only after their order was advanced to `PAID`; a
+non-buyer's review on the same product correctly NOT verified; a duplicate
+review from the same user for the same product correctly rejected (409);
+pending reviews correctly invisible on the public product endpoint;
+admin's moderation queue correctly shows both; approving one makes it
+correctly visible publicly while the still-pending one stays hidden; and a
+customer is correctly blocked (403) from moderating.
+
+**Also added 5 real unit tests** for `ReviewsService` (mocked
+dependencies) covering the same edge cases at the service-logic level:
+verified on a real paid order, not verified on pending payment, not
+verified when the purchase was a *different* product, duplicate-review
+rejection, and every new review starting `PENDING` regardless of verified
+status. All 6 backend test suites (38 tests total) pass together.
+
+All 14 real projects pass `lint` + `test` + `build` as of this commit.
+
+### What's left from the original MVP scope
+Nothing from the original feature list is entirely unbuilt on the backend
+now — catalog, inventory, cart/checkout, orders, coupons, wishlist,
+reviews, and auth/RBAC all have real, verified implementations. What
+remains are the honesty-flagged gaps accumulated along the way: no
+Prisma-backed repositories (blocked on `prisma generate` locally), no
+payment gateway (orders never leave `PENDING_PAYMENT` on their own), no
+refresh tokens/password reset, and the storefront-side reviews UI
+(submission form, star display on PDP) hasn't been built — only the
+backend and the API contract exist for it so far.

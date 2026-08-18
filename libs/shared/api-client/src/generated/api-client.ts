@@ -220,6 +220,55 @@ export interface UpdateOrderStatusDto {
   status: UpdateOrderStatusDtoStatus;
 }
 
+export type ReviewResponseDtoStatus = typeof ReviewResponseDtoStatus[keyof typeof ReviewResponseDtoStatus];
+
+
+export const ReviewResponseDtoStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+} as const;
+
+export interface ReviewResponseDto {
+  id: string;
+  productId: string;
+  userId: string;
+  authorName: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  title?: string;
+  body?: string;
+  status: ReviewResponseDtoStatus;
+  isVerifiedPurchase: boolean;
+  createdAt: string;
+}
+
+export interface CreateReviewDto {
+  productId: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  title?: string;
+  body?: string;
+}
+
+export type ModerateReviewDtoStatus = typeof ModerateReviewDtoStatus[keyof typeof ModerateReviewDtoStatus];
+
+
+export const ModerateReviewDtoStatus = {
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+} as const;
+
+export interface ModerateReviewDto {
+  status: ModerateReviewDtoStatus;
+}
+
 export type ProductsControllerListParams = {
 page?: number;
 pageSize?: number;
@@ -1155,6 +1204,140 @@ export class BeautyPlatformAPIService {
     return this.http.patch<TData>(
       `/orders/${id}/status`,
       updateOrderStatusDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ reviewsControllerListForProduct<TData = ReviewResponseDto[]>(productId: string, options?: HttpClientBodyOptions): Observable<TData>;
+ reviewsControllerListForProduct<TData = ReviewResponseDto[]>(productId: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ reviewsControllerListForProduct<TData = ReviewResponseDto[]>(productId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  reviewsControllerListForProduct<TData = ReviewResponseDto[]>(
+    productId: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/reviews/product/${productId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/reviews/product/${productId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/reviews/product/${productId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ reviewsControllerCreate<TData = ReviewResponseDto>(createReviewDto: CreateReviewDto, options?: HttpClientBodyOptions): Observable<TData>;
+ reviewsControllerCreate<TData = ReviewResponseDto>(createReviewDto: CreateReviewDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ reviewsControllerCreate<TData = ReviewResponseDto>(createReviewDto: CreateReviewDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  reviewsControllerCreate<TData = ReviewResponseDto>(
+    createReviewDto: CreateReviewDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/reviews`,
+      createReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/reviews`,
+      createReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/reviews`,
+      createReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ reviewsControllerListForModeration<TData = ReviewResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ reviewsControllerListForModeration<TData = ReviewResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ reviewsControllerListForModeration<TData = ReviewResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  reviewsControllerListForModeration<TData = ReviewResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/reviews`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/reviews`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/reviews`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ reviewsControllerModerate<TData = ReviewResponseDto>(id: string,
+    moderateReviewDto: ModerateReviewDto, options?: HttpClientBodyOptions): Observable<TData>;
+ reviewsControllerModerate<TData = ReviewResponseDto>(id: string,
+    moderateReviewDto: ModerateReviewDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ reviewsControllerModerate<TData = ReviewResponseDto>(id: string,
+    moderateReviewDto: ModerateReviewDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  reviewsControllerModerate<TData = ReviewResponseDto>(
+    id: string,
+    moderateReviewDto: ModerateReviewDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/reviews/${id}/moderate`,
+      moderateReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/reviews/${id}/moderate`,
+      moderateReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/reviews/${id}/moderate`,
+      moderateReviewDto,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }
