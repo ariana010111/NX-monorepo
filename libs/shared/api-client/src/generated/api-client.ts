@@ -172,6 +172,7 @@ export interface OrderResponseDto {
   /** @nullable */
   userId?: string | null;
   status: string;
+  currency: string;
   subtotal: number;
   discountTotal?: number;
   couponCode?: string;
@@ -267,6 +268,27 @@ export const ModerateReviewDtoStatus = {
 
 export interface ModerateReviewDto {
   status: ModerateReviewDtoStatus;
+}
+
+export type PaymentResponseDtoStatus = typeof PaymentResponseDtoStatus[keyof typeof PaymentResponseDtoStatus];
+
+
+export const PaymentResponseDtoStatus = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+} as const;
+
+export interface PaymentResponseDto {
+  id: string;
+  orderId: string;
+  provider: string;
+  providerPaymentId: string;
+  amount: number;
+  currency: string;
+  status: PaymentResponseDtoStatus;
+  failureReason?: string;
+  createdAt: string;
 }
 
 export type ProductsControllerListParams = {
@@ -1338,6 +1360,71 @@ export class BeautyPlatformAPIService {
     return this.http.patch<TData>(
       `/reviews/${id}/moderate`,
       moderateReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ paymentsControllerPay<TData = PaymentResponseDto>(orderId: string, options?: HttpClientBodyOptions): Observable<TData>;
+ paymentsControllerPay<TData = PaymentResponseDto>(orderId: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ paymentsControllerPay<TData = PaymentResponseDto>(orderId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  paymentsControllerPay<TData = PaymentResponseDto>(
+    orderId: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/payments/orders/${orderId}/pay`,
+      undefined,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/payments/orders/${orderId}/pay`,
+      undefined,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/payments/orders/${orderId}/pay`,
+      undefined,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ paymentsControllerListForOrder<TData = PaymentResponseDto[]>(orderId: string, options?: HttpClientBodyOptions): Observable<TData>;
+ paymentsControllerListForOrder<TData = PaymentResponseDto[]>(orderId: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ paymentsControllerListForOrder<TData = PaymentResponseDto[]>(orderId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  paymentsControllerListForOrder<TData = PaymentResponseDto[]>(
+    orderId: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/payments/orders/${orderId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/payments/orders/${orderId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/payments/orders/${orderId}`,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }

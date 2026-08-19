@@ -47,6 +47,7 @@ export class InMemoryOrdersRepository implements OrdersRepository {
       email: dto.email,
       userId: userId ?? null,
       status: 'PENDING_PAYMENT',
+      currency: 'USD', // no multi-currency support yet — matches the schema's field but hardcoded for now
       subtotal,
       discountTotal: discountTotal || undefined,
       couponCode,

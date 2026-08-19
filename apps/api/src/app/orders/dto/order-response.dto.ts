@@ -15,6 +15,7 @@ export class OrderResponseDto {
   @ApiProperty() email!: string;
   @ApiProperty({ required: false, nullable: true }) userId?: string | null; // null/undefined = guest checkout
   @ApiProperty() status!: string;
+  @ApiProperty() currency!: string;
   @ApiProperty() subtotal!: number;
   @ApiProperty({ required: false }) discountTotal?: number;
   @ApiProperty({ required: false }) couponCode?: string;

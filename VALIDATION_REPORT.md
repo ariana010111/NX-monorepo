@@ -546,3 +546,61 @@ payment gateway (orders never leave `PENDING_PAYMENT` on their own), no
 refresh tokens/password reset, and the storefront-side reviews UI
 (submission form, star display on PDP) hasn't been built — only the
 backend and the API contract exist for it so far.
+
+---
+
+## Payments — the flagged gap closed, wired into checkout end to end
+
+`PaymentsModule` — the real architectural piece is `PaymentProvider`, an
+abstract interface any real gateway implements. `MockPaymentProvider` is
+the only implementation right now (this sandbox has no network access to
+`api.stripe.com` and no test API keys, so a real `StripePaymentProvider`
+can't be built and verified here) — but it deliberately simulates a real
+decline path (any email containing "declined" fails), not just an
+always-succeeds stub, so the failure branch is genuinely exercisable.
+Swapping in a real gateway later is one binding change in
+`payments.module.ts` — nothing in `PaymentsService`, `OrdersService`, or
+any controller changes.
+
+`POST /payments/orders/:orderId/pay` is idempotent (a `PAID` order can't
+be charged again — real risk with any client that retries a slow
+response) and correctly leaves a declined order at `PENDING_PAYMENT` so
+the customer can retry rather than losing the order entirely.
+
+**Real bug caught during build, not by inspection**: `OrderResponseDto`
+never actually exposed `currency`, despite it being on the approved
+schema — a plain `TS2339` the moment `PaymentsService` tried to read
+`order.currency`. Fixed by adding the field (and its default in the
+repository) rather than working around it.
+
+**Verified for real, 9 checks**, including one real bug in the
+*verification script itself*, not the app: an email
+`retry-not-declined@example.com` accidentally contained the substring
+`"declined"`, so `MockPaymentProvider`'s simple `.includes()` check
+correctly failed it — a good reminder that "contains" checks on free-text
+fields are a real footgun even in a mock. Fixed the test email and re-ran:
+order starts `PENDING_PAYMENT` → successful charge advances it to `PAID` →
+a second payment attempt on the same order is correctly blocked (400) → a
+declined charge returns 422 and leaves the order retryable → a retry with
+a non-declining email succeeds → admin-only payment history correctly
+shows the failed attempt → a customer (or guest) cannot view payment
+history without admin auth.
+
+**Wired into the real checkout flow**, not left as a dangling endpoint:
+`CheckoutFacade.submit()` now calls `pay()` immediately after
+`create()` succeeds, and distinguishes the two failure modes a customer
+actually needs different messaging for — order creation failing entirely
+(cart preserved, generic retry message) versus the order being created
+but payment declined (cart preserved, the real order number surfaced so a
+retry targets the same order rather than creating a duplicate). Updated
+the existing Vitest suite for `CheckoutFacade`, which broke correctly
+(not spuriously) the moment `pay()` was added and the old mock didn't
+cover it — rewrote it with 2 new tests specifically for the decline path,
+10/10 passing.
+
+All 14 real projects pass `lint` + `test` + `build` as of this commit.
+
+### Still true
+No real gateway (documented above — this is a sandbox/credentials
+limitation, not a design gap). Refresh tokens, password reset, and
+Prisma-backed repositories remain the other open items.

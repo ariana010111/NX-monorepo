@@ -946,6 +946,74 @@
           "reviews"
         ]
       }
+    },
+    "/payments/orders/{orderId}/pay": {
+      "post": {
+        "operationId": "PaymentsController_pay",
+        "parameters": [
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/payments/orders/{orderId}": {
+      "get": {
+        "operationId": "PaymentsController_listForOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "payments"
+        ]
+      }
     }
   },
   "info": {
@@ -1426,6 +1494,9 @@
           "status": {
             "type": "string"
           },
+          "currency": {
+            "type": "string"
+          },
           "subtotal": {
             "type": "number"
           },
@@ -1453,6 +1524,7 @@
           "orderNumber",
           "email",
           "status",
+          "currency",
           "subtotal",
           "grandTotal",
           "items",
@@ -1646,6 +1718,53 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "PaymentResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "providerPaymentId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "SUCCEEDED",
+              "FAILED"
+            ]
+          },
+          "failureReason": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "orderId",
+          "provider",
+          "providerPaymentId",
+          "amount",
+          "currency",
+          "status",
+          "createdAt"
         ]
       }
     }

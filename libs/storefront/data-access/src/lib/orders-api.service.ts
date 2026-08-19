@@ -8,6 +8,9 @@ export class OrdersApiService {
   create(dto: CreateOrderDto) {
     return this.generated.ordersControllerCreate(dto);
   }
+  pay(orderId: string) {
+    return this.generated.paymentsControllerPay(orderId);
+  }
   getById(id: string) {
     return this.generated.ordersControllerGetById(id);
   }

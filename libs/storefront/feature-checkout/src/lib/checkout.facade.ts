@@ -67,8 +67,10 @@ export class CheckoutFacade {
     }
     this.isSubmitting.set(true);
     this.error.set(undefined);
+
+    let order: OrderResponseDto;
     try {
-      const order = await new Promise<OrderResponseDto>((resolve, reject) =>
+      order = await new Promise<OrderResponseDto>((resolve, reject) =>
         this.ordersApi
           .create({
             email,
@@ -84,10 +86,24 @@ export class CheckoutFacade {
           })
           .subscribe({ next: resolve, error: reject }),
       );
+    } catch {
+      this.error.set('Something went wrong placing your order. Please try again.');
+      this.isSubmitting.set(false);
+      return;
+    }
+
+    // Order exists at this point (PENDING_PAYMENT) even if the charge
+    // below fails — a declined card must not silently vanish the order,
+    // since the customer (or admin) needs to be able to retry payment
+    // against that same order rather than starting over from an empty cart.
+    try {
+      await new Promise((resolve, reject) => this.ordersApi.pay(order.id).subscribe({ next: resolve, error: reject }));
       this.placedOrder.set(order);
       this.cart.clear();
     } catch {
-      this.error.set('Something went wrong placing your order. Please try again.');
+      this.error.set(
+        `Your order was created (${order.orderNumber}) but the payment was declined. Please try again or use a different card.`,
+      );
     } finally {
       this.isSubmitting.set(false);
     }
