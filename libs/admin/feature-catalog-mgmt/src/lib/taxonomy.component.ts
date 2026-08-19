@@ -15,10 +15,14 @@ import { TaxonomyFacade } from './taxonomy.facade';
         @for (category of facade.categories(); track category.id) {
           <li>
             {{ category.name }}
+            <button type="button" (click)="facade.deleteCategory(category.id)">Delete</button>
             @if (category.children?.length) {
               <ul>
                 @for (child of category.children; track child.id) {
-                  <li>{{ child.name }}</li>
+                  <li>
+                    {{ child.name }}
+                    <button type="button" (click)="facade.deleteCategory(child.id)">Delete</button>
+                  </li>
                 }
               </ul>
             }
@@ -36,7 +40,10 @@ import { TaxonomyFacade } from './taxonomy.facade';
       <h2>Brands</h2>
       <ul>
         @for (brand of facade.brands(); track brand.id) {
-          <li>{{ brand.name }}</li>
+          <li>
+            {{ brand.name }}
+            <button type="button" (click)="facade.deleteBrand(brand.id)">Delete</button>
+          </li>
         }
       </ul>
       <form [formGroup]="brandForm" (ngSubmit)="onCreateBrand()">

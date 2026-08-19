@@ -3,6 +3,8 @@ import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiQuery, ApiNoContentRespo
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { CreateVariantDto } from './dto/create-variant.dto';
+import { AddImageDto } from './dto/add-image.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -68,5 +70,27 @@ export class ProductsController {
   @ApiNoContentResponse()
   delete(@Param('id') id: string) {
     return this.productsService.delete(id);
+  }
+
+  // Closes the gap that made admin-created products unpurchasable: a
+  // product with no variants has nothing to select or add to cart, and
+  // reserveForOrder() has no inventory row to find. This creates both the
+  // variant AND its inventory record together (see ProductsService.addVariant).
+  @Roles('SUPER_ADMIN')
+  @ApiBearerAuth()
+  @Post(':id/variants')
+  @ApiCreatedResponse({ type: ProductResponseDto })
+  addVariant(@Param('id') id: string, @Body() dto: CreateVariantDto) {
+    return this.productsService.addVariant(id, dto);
+  }
+
+  // URL-based, not a file upload — no object storage wired into this
+  // sandbox (see AddImageDto for why).
+  @Roles('SUPER_ADMIN')
+  @ApiBearerAuth()
+  @Post(':id/images')
+  @ApiCreatedResponse({ type: ProductResponseDto })
+  addImage(@Param('id') id: string, @Body() dto: AddImageDto) {
+    return this.productsService.addImage(id, dto);
   }
 }

@@ -6,6 +6,13 @@ export abstract class InventoryRepository {
   abstract findByVariantId(variantId: string): Promise<InventoryItemResponseDto | null>;
   abstract adjustOnHand(variantId: string, quantityChange: number): Promise<InventoryItemResponseDto | null>;
   abstract reserve(variantId: string, quantity: number): Promise<InventoryItemResponseDto | null>;
+  abstract createItem(item: {
+    variantId: string;
+    productName: string;
+    variantLabel: string;
+    quantityOnHand: number;
+    lowStockThreshold?: number;
+  }): Promise<InventoryItemResponseDto>;
 }
 
 /**
@@ -51,5 +58,19 @@ export class InMemoryInventoryRepository implements InventoryRepository {
     if (!item) return null;
     item.quantityReserved += quantity;
     return this.recompute(item);
+  }
+
+  async createItem(item: { variantId: string; productName: string; variantLabel: string; quantityOnHand: number; lowStockThreshold?: number }) {
+    const created = {
+      variantId: item.variantId,
+      productName: item.productName,
+      variantLabel: item.variantLabel,
+      quantityOnHand: item.quantityOnHand,
+      quantityReserved: 0,
+      quantityAvailable: item.quantityOnHand,
+      lowStockThreshold: item.lowStockThreshold ?? 5,
+    };
+    this.items.push(created);
+    return created;
   }
 }

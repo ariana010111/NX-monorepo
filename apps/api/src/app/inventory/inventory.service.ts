@@ -23,6 +23,23 @@ export class InventoryService {
   }
 
   /**
+   * Called by ProductsService.addVariant — every new variant gets a real
+   * InventoryItem row immediately, not left to be discovered missing the
+   * first time someone tries to check out with it. Without this, a
+   * product created via the admin API would have a variant with no
+   * inventory record at all, and reserveForOrder() would 404 rather than
+   * correctly reporting "out of stock."
+   */
+  initializeForVariant(item: { variantId: string; productName: string; variantLabel: string; initialStock?: number }) {
+    return this.inventoryRepo.createItem({
+      variantId: item.variantId,
+      productName: item.productName,
+      variantLabel: item.variantLabel,
+      quantityOnHand: item.initialStock ?? 0,
+    });
+  }
+
+  /**
    * Called by OrdersService when a new order is placed. Reserves stock
    * rather than decrementing onHand directly — matches the schema's
    * quantityOnHand/quantityReserved split, since the order isn't paid yet.

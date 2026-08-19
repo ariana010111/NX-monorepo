@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Delete, Body, Param, HttpCode } from '@nestjs/common';
+import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiNoContentResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 
@@ -31,5 +32,22 @@ export class CategoriesController {
   @ApiCreatedResponse({ type: CategoryResponseDto })
   create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
+  }
+
+  @Roles('SUPER_ADMIN')
+  @ApiBearerAuth()
+  @Patch(':id')
+  @ApiOkResponse({ type: CategoryResponseDto })
+  update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
+    return this.categoriesService.update(id, dto);
+  }
+
+  @Roles('SUPER_ADMIN')
+  @ApiBearerAuth()
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  delete(@Param('id') id: string) {
+    return this.categoriesService.delete(id);
   }
 }

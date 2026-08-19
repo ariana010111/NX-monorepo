@@ -604,3 +604,73 @@ All 14 real projects pass `lint` + `test` + `build` as of this commit.
 No real gateway (documented above — this is a sandbox/credentials
 limitation, not a design gap). Refresh tokens, password reset, and
 Prisma-backed repositories remain the other open items.
+
+---
+
+## Remaining backend gaps closed + real frontend API wiring for everything built so far
+
+Systematic audit, not guessing: checked every controller for missing CRUD
+and every backend endpoint for zero frontend consumption. Found and fixed:
+
+**1. Critical: admin-created products had no way to get variants.**
+`create()` alone produced a product with an empty `variants` array —
+nothing to select on a PDP, nothing addable to cart, no inventory row for
+`reserveForOrder()` to find. A product created through the admin API was
+permanently unpurchasable. Fixed with `POST /products/:id/variants`
+(`ProductsService.addVariant`), which does two things atomically: adds the
+variant AND calls `InventoryService.initializeForVariant()` to create a
+real `InventoryItem` — cross-module DI, same pattern as
+Orders→Inventory. Recomputes `fromPrice` from the new variant too.
+**Verified with 12 real HTTP checks**, ending in the actual proof that
+matters: a customer registers, orders the brand-new variant, pays for it,
+and stock correctly decrements — the complete loop, for a product and
+variant that didn't exist when the server started.
+
+**2. Real latent bug fixed while in this code**: product ids were
+generated from `products.length + 1`, which collides after any delete
+(length drops, next create can reuse an id still held by another product).
+Replaced with a monotonic counter.
+
+**3. Product images**: `POST /products/:id/images`, URL-based rather than
+file upload — no object storage (S3/Cloudinary) is wired into this
+sandbox, which is the same architecture decision documented from the very
+first planning conversation, not a new shortcut.
+
+**4. Reviews had zero frontend wiring** (backend existed, nothing called
+it). Added `ReviewsApiService` to `storefront-data-access` and wired real
+fetch + submit calls into `ProductDetailComponent` — approved reviews
+list, a Reactive Forms submission gated on `AuthFacade.isAuthenticated()`,
+and real error surfacing (e.g. the backend's actual duplicate-review
+message). Markup is deliberately minimal/unstyled per direct instruction.
+
+**5. Categories and brands were create-only** — no way to fix a typo or
+remove one without going around the API. Added full `update`/`delete` to
+both, including the harder case for categories (a two-level tree, so
+update/delete has to search both top-level and nested children — verified
+directly, not assumed). Deleting a parent category orphans its children
+rather than cascading, matching the schema's `onDelete: SetNull`.
+
+**6. Admin frontend wired to all of the above**: `TaxonomyComponent` got
+functional delete buttons for both categories (including nested children)
+and brands. `ProductFormComponent` got a real variant-creation form and
+image-URL form for edit mode — and the post-create navigation changed
+from "back to the list" to "straight to the edit page for the new
+product," since a brand-new product has zero variants and is
+unpurchasable until at least one is added.
+
+**Verified for real, 23 HTTP checks across two test runs**: the full
+variant/inventory/purchase loop (12 checks, detailed above) and category/
+brand CRUD including the nested-child path plus a customer correctly
+blocked from any of it (11 checks). All passed. Existing test suites
+re-run afterward — 38 backend tests, plus the frontend suites — all still
+pass; the only one that touched changed code
+(`product-form.component.spec.ts`) still passes unmodified since it only
+exercises the invalid-empty-form path.
+
+All 14 real projects pass `lint` + `test` + `build` together.
+
+### What's genuinely left
+Prisma-backed repositories (blocked on local `prisma generate`), refresh
+tokens / password reset. Everything else audited in this pass — every
+controller's CRUD completeness and every endpoint's frontend consumption —
+is now either complete or was already complete.

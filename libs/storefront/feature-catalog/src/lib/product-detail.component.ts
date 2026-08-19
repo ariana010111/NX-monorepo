@@ -1,7 +1,8 @@
 import { Component, computed, inject, signal, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
-import { ProductsApiService, CartFacade, WishlistFacade } from '@beauty-platform-validated/storefront-data-access';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ProductsApiService, CartFacade, WishlistFacade, ReviewsApiService, AuthFacade } from '@beauty-platform-validated/storefront-data-access';
 import type { ProductResponseDto } from '@beauty-platform-validated/api-client';
 
 /**
@@ -9,11 +10,15 @@ import type { ProductResponseDto } from '@beauty-platform-validated/api-client';
  * Size, ...) so the UI can render one selector control per attribute type
  * rather than a flat variant dropdown — this is what makes a shade swatch
  * picker possible instead of a generic "select a SKU" list.
+ *
+ * Reviews markup below is deliberately minimal/unstyled — functional
+ * wiring only, per direct instruction that UI/CSS is being handled
+ * separately.
  */
 @Component({
   selector: 'beauty-product-detail',
   standalone: true,
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, ReactiveFormsModule],
   template: `
     @if (productResource.value(); as product) {
       <h1>{{ product.name }}</h1>
@@ -46,6 +51,41 @@ import type { ProductResponseDto } from '@beauty-platform-validated/api-client';
       } @else {
         <p>Select options to see price.</p>
       }
+
+      <section>
+        <h2>Reviews ({{ reviewsResource.value()?.length ?? 0 }})</h2>
+        @for (review of reviewsResource.value(); track review.id) {
+          <div>
+            <strong>{{ review.rating }}/5</strong>
+            @if (review.isVerifiedPurchase) {
+              <span> (Verified Purchase)</span>
+            }
+            <p>{{ review.title }}</p>
+            <p>{{ review.body }}</p>
+            <small>{{ review.authorName }}</small>
+          </div>
+        }
+
+        @if (authFacade.isAuthenticated()) {
+          <form [formGroup]="reviewForm" (ngSubmit)="onSubmitReview(product.id)">
+            <label>
+              Rating (1-5)
+              <input type="number" formControlName="rating" min="1" max="5" />
+            </label>
+            <input formControlName="title" placeholder="Title" />
+            <textarea formControlName="body" placeholder="Your review"></textarea>
+            @if (reviewSubmitError(); as err) {
+              <p role="alert">{{ err }}</p>
+            }
+            @if (reviewSubmitted()) {
+              <p>Thanks — your review is pending moderation.</p>
+            }
+            <button type="submit" [disabled]="reviewForm.invalid">Submit review</button>
+          </form>
+        } @else {
+          <p>Log in to leave a review.</p>
+        }
+      </section>
     } @else if (productResource.isLoading()) {
       <p>Loading…</p>
     }
@@ -57,11 +97,30 @@ export class ProductDetailComponent {
   private readonly productsApi = inject(ProductsApiService);
   private readonly cartFacade = inject(CartFacade);
   private readonly wishlistFacade = inject(WishlistFacade);
+  private readonly reviewsApi = inject(ReviewsApiService);
+  private readonly fb = inject(FormBuilder);
+  readonly authFacade = inject(AuthFacade);
 
   readonly productResource = rxResource({
     params: () => ({ slug: this.slug() }),
     stream: ({ params }) => this.productsApi.getBySlug(params.slug),
   });
+
+  readonly reviewsResource = rxResource({
+    params: () => {
+      const product = this.productResource.value();
+      return product ? { productId: product.id } : undefined;
+    },
+    stream: ({ params }) => this.reviewsApi.listForProduct(params.productId),
+  });
+
+  readonly reviewForm = this.fb.nonNullable.group({
+    rating: [5, [Validators.required, Validators.min(1), Validators.max(5)]],
+    title: [''],
+    body: [''],
+  });
+  readonly reviewSubmitError = signal<string | undefined>(undefined);
+  readonly reviewSubmitted = signal(false);
 
   readonly selectedValues = signal<Record<string, string>>({});
 
@@ -121,5 +180,24 @@ export class ProductDetailComponent {
       quantity: 1,
       unitPrice: variant.price,
     });
+  }
+
+  async onSubmitReview(productId: string) {
+    if (this.reviewForm.invalid) return;
+    this.reviewSubmitError.set(undefined);
+    this.reviewSubmitted.set(false);
+    const { rating, title, body } = this.reviewForm.getRawValue();
+    try {
+      await new Promise((resolve, reject) =>
+        this.reviewsApi.create({ productId, rating, title, body }).subscribe({ next: resolve, error: reject }),
+      );
+      this.reviewSubmitted.set(true);
+      this.reviewForm.reset({ rating: 5, title: '', body: '' });
+      // A freshly-submitted review is PENDING and won't appear in this
+      // list yet (only approved reviews are public) — no need to reload.
+    } catch (err: unknown) {
+      const message = (err as { error?: { message?: string } })?.error?.message;
+      this.reviewSubmitError.set(message ?? 'Could not submit review. You may have already reviewed this product.');
+    }
   }
 }

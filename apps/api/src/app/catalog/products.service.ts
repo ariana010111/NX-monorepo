@@ -2,11 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { ProductsRepository } from './products.repository';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { CreateVariantDto } from './dto/create-variant.dto';
+import { AddImageDto } from './dto/add-image.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
+import { InventoryService } from '../inventory/inventory.service';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly productsRepo: ProductsRepository) {}
+  constructor(
+    private readonly productsRepo: ProductsRepository,
+    private readonly inventoryService: InventoryService,
+  ) {}
 
   async getBySlug(slug: string): Promise<ProductResponseDto> {
     const product = await this.productsRepo.findBySlug(slug);
@@ -37,5 +43,47 @@ export class ProductsService {
   async delete(id: string): Promise<void> {
     const deleted = await this.productsRepo.delete(id);
     if (!deleted) throw new NotFoundException(`Product "${id}" not found`);
+  }
+
+  /**
+   * The gap that made admin-created products unpurchasable: without this,
+   * create() alone produces a product with an empty variants array —
+   * nothing to select on the PDP, nothing addable to a cart, and no
+   * inventory row for reserveForOrder() to find. This closes that loop:
+   * a real variant AND a real InventoryItem are created together.
+   */
+  async addVariant(productId: string, dto: CreateVariantDto): Promise<ProductResponseDto> {
+    const product = await this.getById(productId); // throws 404 if the product doesn't exist
+
+    const variantId = `v${Date.now()}`;
+    const updated = await this.productsRepo.addVariant(productId, {
+      id: variantId,
+      sku: dto.sku,
+      price: dto.price,
+      compareAtPrice: dto.compareAtPrice,
+      isActive: true,
+      attributes: dto.attributes,
+      imageUrl: dto.imageUrl,
+    });
+    if (!updated) throw new NotFoundException(`Product "${productId}" not found`);
+
+    await this.inventoryService.initializeForVariant({
+      variantId,
+      productName: product.name,
+      variantLabel: dto.attributes.map((a) => a.value).join(' / '),
+      initialStock: dto.initialStock,
+    });
+
+    return updated;
+  }
+
+  async addImage(productId: string, dto: AddImageDto): Promise<ProductResponseDto> {
+    const updated = await this.productsRepo.addImage(productId, {
+      url: dto.url,
+      altText: dto.altText,
+      isPrimary: dto.isPrimary ?? false,
+    });
+    if (!updated) throw new NotFoundException(`Product "${productId}" not found`);
+    return updated;
   }
 }

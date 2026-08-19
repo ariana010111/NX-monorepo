@@ -10,6 +10,8 @@ export abstract class ProductsRepository {
   abstract create(dto: CreateProductDto): Promise<ProductResponseDto>;
   abstract update(id: string, dto: UpdateProductDto): Promise<ProductResponseDto | null>;
   abstract delete(id: string): Promise<boolean>;
+  abstract addVariant(productId: string, variant: ProductResponseDto['variants'][number]): Promise<ProductResponseDto | null>;
+  abstract addImage(productId: string, image: ProductResponseDto['images'][number]): Promise<ProductResponseDto | null>;
 }
 
 /**
@@ -79,6 +81,8 @@ export class InMemoryProductsRepository implements ProductsRepository {
     },
   ];
 
+  private nextProductId = 3; // p1, p2 are seeded above
+
   async findBySlug(slug: string) {
     return this.products.find((p) => p.slug === slug) ?? null;
   }
@@ -98,7 +102,10 @@ export class InMemoryProductsRepository implements ProductsRepository {
 
   async create(dto: CreateProductDto) {
     const created: ProductResponseDto = {
-      id: `p${this.products.length + 1}`,
+      // Was `p${this.products.length + 1}` — collided after any delete
+      // (length drops, so the next create could reuse an id still held
+      // by another product). A monotonic counter never reuses an id.
+      id: `p${this.nextProductId++}`,
       status: 'DRAFT',
       images: [],
       variants: [],
@@ -120,5 +127,21 @@ export class InMemoryProductsRepository implements ProductsRepository {
     if (index === -1) return false;
     this.products.splice(index, 1);
     return true;
+  }
+
+  async addVariant(productId: string, variant: ProductResponseDto['variants'][number]) {
+    const product = this.products.find((p) => p.id === productId);
+    if (!product) return null;
+    product.variants.push(variant);
+    // fromPrice should reflect the cheapest variant once one exists.
+    product.fromPrice = Math.min(...product.variants.map((v) => v.price));
+    return product;
+  }
+
+  async addImage(productId: string, image: ProductResponseDto['images'][number]) {
+    const product = this.products.find((p) => p.id === productId);
+    if (!product) return null;
+    product.images.push(image);
+    return product;
   }
 }

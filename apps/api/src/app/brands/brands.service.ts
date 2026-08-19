@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { BrandsRepository } from './brands.repository';
 import { CreateBrandDto } from './dto/create-brand.dto';
+import { UpdateBrandDto } from './dto/update-brand.dto';
 
 @Injectable()
 export class BrandsService {
@@ -18,5 +19,16 @@ export class BrandsService {
 
   create(dto: CreateBrandDto) {
     return this.brandsRepo.create(dto);
+  }
+
+  async update(id: string, dto: UpdateBrandDto) {
+    const updated = await this.brandsRepo.update(id, dto);
+    if (!updated) throw new NotFoundException(`Brand "${id}" not found`);
+    return updated;
+  }
+
+  async delete(id: string) {
+    const deleted = await this.brandsRepo.delete(id);
+    if (!deleted) throw new NotFoundException(`Brand "${id}" not found`);
   }
 }

@@ -1,5 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { BeautyPlatformAPIService, CreateProductDto, UpdateProductDto } from '@beauty-platform-validated/api-client';
+import {
+  BeautyPlatformAPIService,
+  CreateProductDto,
+  UpdateProductDto,
+  CreateVariantDto,
+  AddImageDto,
+} from '@beauty-platform-validated/api-client';
 
 @Injectable({ providedIn: 'root' })
 export class ProductsAdminApiService {
@@ -19,5 +25,11 @@ export class ProductsAdminApiService {
   }
   delete(id: string) {
     return this.generated.productsControllerDelete(id);
+  }
+  addVariant(productId: string, dto: CreateVariantDto) {
+    return this.generated.productsControllerAddVariant(productId, dto);
+  }
+  addImage(productId: string, dto: AddImageDto) {
+    return this.generated.productsControllerAddImage(productId, dto);
   }
 }

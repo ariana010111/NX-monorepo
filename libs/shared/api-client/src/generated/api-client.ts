@@ -107,6 +107,42 @@ export interface UpdateProductDto {
   status?: UpdateProductDtoStatus;
 }
 
+export interface VariantAttributeInputDto {
+  attributeName: string;
+  value: string;
+  colorHex?: string;
+}
+
+export interface CreateVariantDto {
+  sku: string;
+  price: number;
+  compareAtPrice?: number;
+  imageUrl?: string;
+  attributes: VariantAttributeInputDto[];
+  initialStock?: number;
+}
+
+export interface AddImageDto {
+  url: string;
+  altText?: string;
+  isPrimary?: boolean;
+}
+
+export interface InventoryItemResponseDto {
+  variantId: string;
+  productName: string;
+  variantLabel: string;
+  quantityOnHand: number;
+  quantityReserved: number;
+  quantityAvailable: number;
+  lowStockThreshold: number;
+}
+
+export interface AdjustStockDto {
+  quantityChange: number;
+  note?: string;
+}
+
 export interface CategoryResponseDto {
   id: string;
   name: string;
@@ -123,6 +159,11 @@ export interface CreateCategoryDto {
   parentId?: string;
 }
 
+export interface UpdateCategoryDto {
+  name?: string;
+  slug?: string;
+}
+
 export interface BrandResponseDto {
   id: string;
   name: string;
@@ -136,19 +177,10 @@ export interface CreateBrandDto {
   logoUrl?: string;
 }
 
-export interface InventoryItemResponseDto {
-  variantId: string;
-  productName: string;
-  variantLabel: string;
-  quantityOnHand: number;
-  quantityReserved: number;
-  quantityAvailable: number;
-  lowStockThreshold: number;
-}
-
-export interface AdjustStockDto {
-  quantityChange: number;
-  note?: string;
+export interface UpdateBrandDto {
+  name?: string;
+  slug?: string;
+  logoUrl?: string;
 }
 
 export interface ValidateCouponResponseDto {
@@ -738,6 +770,182 @@ export class BeautyPlatformAPIService {
     );
   }
 
+ productsControllerAddVariant<TData = ProductResponseDto>(id: string,
+    createVariantDto: CreateVariantDto, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerAddVariant<TData = ProductResponseDto>(id: string,
+    createVariantDto: CreateVariantDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerAddVariant<TData = ProductResponseDto>(id: string,
+    createVariantDto: CreateVariantDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  productsControllerAddVariant<TData = ProductResponseDto>(
+    id: string,
+    createVariantDto: CreateVariantDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/products/${id}/variants`,
+      createVariantDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/products/${id}/variants`,
+      createVariantDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/products/${id}/variants`,
+      createVariantDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ productsControllerAddImage<TData = ProductResponseDto>(id: string,
+    addImageDto: AddImageDto, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerAddImage<TData = ProductResponseDto>(id: string,
+    addImageDto: AddImageDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerAddImage<TData = ProductResponseDto>(id: string,
+    addImageDto: AddImageDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  productsControllerAddImage<TData = ProductResponseDto>(
+    id: string,
+    addImageDto: AddImageDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/products/${id}/images`,
+      addImageDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/products/${id}/images`,
+      addImageDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/products/${id}/images`,
+      addImageDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  inventoryControllerList<TData = InventoryItemResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/inventory`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/inventory`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/inventory`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientBodyOptions): Observable<TData>;
+ inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(
+    variantId: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/inventory/${variantId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/inventory/${variantId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/inventory/${variantId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientBodyOptions): Observable<TData>;
+ inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  inventoryControllerAdjust<TData = InventoryItemResponseDto>(
+    variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/inventory/${variantId}`,
+      adjustStockDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/inventory/${variantId}`,
+      adjustStockDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/inventory/${variantId}`,
+      adjustStockDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
  categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
  categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
  categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
@@ -828,6 +1036,75 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/categories/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ categoriesControllerUpdate<TData = CategoryResponseDto>(id: string,
+    updateCategoryDto: UpdateCategoryDto, options?: HttpClientBodyOptions): Observable<TData>;
+ categoriesControllerUpdate<TData = CategoryResponseDto>(id: string,
+    updateCategoryDto: UpdateCategoryDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ categoriesControllerUpdate<TData = CategoryResponseDto>(id: string,
+    updateCategoryDto: UpdateCategoryDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  categoriesControllerUpdate<TData = CategoryResponseDto>(
+    id: string,
+    updateCategoryDto: UpdateCategoryDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/categories/${id}`,
+      updateCategoryDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/categories/${id}`,
+      updateCategoryDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/categories/${id}`,
+      updateCategoryDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ categoriesControllerDelete<TData = void>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ categoriesControllerDelete<TData = void>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ categoriesControllerDelete<TData = void>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  categoriesControllerDelete<TData = void>(
+    id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.delete<TData>(
+      `/categories/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.delete<TData>(
+      `/categories/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.delete<TData>(
+      `/categories/${id}`,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }
@@ -930,81 +1207,19 @@ export class BeautyPlatformAPIService {
     );
   }
 
- inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
- inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  inventoryControllerList<TData = InventoryItemResponseDto[]>(
-     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.get<TData>(
-      `/inventory`,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
-    }
-
-    if (options?.observe === 'response') {
-      return this.http.get<TData>(
-      `/inventory`,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
-    }
-
-    return this.http.get<TData>(
-      `/inventory`,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
-
- inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientBodyOptions): Observable<TData>;
- inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(
-    variantId: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.get<TData>(
-      `/inventory/${variantId}`,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
-    }
-
-    if (options?.observe === 'response') {
-      return this.http.get<TData>(
-      `/inventory/${variantId}`,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
-    }
-
-    return this.http.get<TData>(
-      `/inventory/${variantId}`,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
-
- inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
-    adjustStockDto: AdjustStockDto, options?: HttpClientBodyOptions): Observable<TData>;
- inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
-    adjustStockDto: AdjustStockDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
-    adjustStockDto: AdjustStockDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  inventoryControllerAdjust<TData = InventoryItemResponseDto>(
-    variantId: string,
-    adjustStockDto: AdjustStockDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+ brandsControllerUpdate<TData = BrandResponseDto>(id: string,
+    updateBrandDto: UpdateBrandDto, options?: HttpClientBodyOptions): Observable<TData>;
+ brandsControllerUpdate<TData = BrandResponseDto>(id: string,
+    updateBrandDto: UpdateBrandDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ brandsControllerUpdate<TData = BrandResponseDto>(id: string,
+    updateBrandDto: UpdateBrandDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  brandsControllerUpdate<TData = BrandResponseDto>(
+    id: string,
+    updateBrandDto: UpdateBrandDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === 'events') {
       return this.http.patch<TData>(
-      `/inventory/${variantId}`,
-      adjustStockDto,{
+      `/brands/${id}`,
+      updateBrandDto,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'events',
       }
@@ -1013,8 +1228,8 @@ export class BeautyPlatformAPIService {
 
     if (options?.observe === 'response') {
       return this.http.patch<TData>(
-      `/inventory/${variantId}`,
-      adjustStockDto,{
+      `/brands/${id}`,
+      updateBrandDto,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'response',
       }
@@ -1022,8 +1237,39 @@ export class BeautyPlatformAPIService {
     }
 
     return this.http.patch<TData>(
-      `/inventory/${variantId}`,
-      adjustStockDto,{
+      `/brands/${id}`,
+      updateBrandDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ brandsControllerDelete<TData = void>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ brandsControllerDelete<TData = void>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ brandsControllerDelete<TData = void>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  brandsControllerDelete<TData = void>(
+    id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.delete<TData>(
+      `/brands/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.delete<TData>(
+      `/brands/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.delete<TData>(
+      `/brands/${id}`,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }

@@ -26,4 +26,14 @@ export class TaxonomyFacade {
     );
     this.brandsResource.reload();
   }
+
+  async deleteCategory(id: string) {
+    await new Promise((resolve, reject) => this.catalogApi.deleteCategory(id).subscribe({ next: resolve, error: reject }));
+    this.categoriesResource.reload();
+  }
+
+  async deleteBrand(id: string) {
+    await new Promise((resolve, reject) => this.catalogApi.deleteBrand(id).subscribe({ next: resolve, error: reject }));
+    this.brandsResource.reload();
+  }
 }
