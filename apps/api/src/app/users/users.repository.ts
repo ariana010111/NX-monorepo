@@ -5,6 +5,7 @@ import { UserRecord } from './user.types';
 export abstract class UsersRepository {
   abstract findByEmail(email: string): Promise<UserRecord | null>;
   abstract findById(id: string): Promise<UserRecord | null>;
+  abstract findAll(): Promise<UserRecord[]>;
   abstract create(data: { email: string; passwordHash: string; firstName: string; lastName: string; roles: string[] }): Promise<UserRecord>;
   abstract updatePassword(userId: string, passwordHash: string): Promise<void>;
 }
@@ -42,6 +43,10 @@ export class InMemoryUsersRepository implements UsersRepository {
 
   async findById(id: string) {
     return this.users.find((u) => u.id === id) ?? null;
+  }
+
+  async findAll() {
+    return this.users;
   }
 
   async create(data: { email: string; passwordHash: string; firstName: string; lastName: string; roles: string[] }) {

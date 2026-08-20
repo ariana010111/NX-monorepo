@@ -737,3 +737,44 @@ Prisma-backed repositories remain the one structural gap (blocked on
 earlier entries in this report for the exact commands to run locally).
 Every backend/auth gap that's been flagged across this entire project has
 now been closed and verified over real HTTP.
+
+---
+
+## Users/customers endpoint — a real gap found by direct question, not by my own audit
+
+Direct question: "can admin see users?" surfaced something my own earlier
+"systematic audit" missed — `UsersService` existed and was fully
+functional internally (used by `AuthModule`), but **no controller ever
+exposed it**. There was no way, at the API level, for an admin to list
+customers, despite "Manage customers" being in the original MVP scope
+from the very first planning conversation. Worth naming honestly: an
+audit that only checks "does every entity have CRUD" will still miss "is
+this internal service exposed at all," which is exactly what happened here.
+
+Fixed: `GET /users`, admin-only (`@Roles('SUPER_ADMIN')`, no `@Public()`
+anywhere in the controller — same posture as inventory, since customer
+accounts are sensitive operational data). `UsersService.findAll()`
+explicitly strips `passwordHash` before returning, at the one place a full
+user list leaves the service boundary.
+
+**Verified for real, 6 HTTP checks**: blocked with no auth (401), blocked
+for a regular customer (403), succeeds for admin (200), the account that
+was JUST registered in the same test run appears in the list, no
+`passwordHash` anywhere in the response, and the seeded admin account
+itself shows up too.
+
+**A real, correctly-caught test failure along the way**: generating the
+`admin-feature-customers-mgmt` library (planned from the very first
+architecture scaffold but never actually built) and adding
+`CustomerListComponent` failed the workspace-wide test sweep — the
+placeholder spec that ships with a fresh Nx-generated library was removed
+along with the placeholder component, leaving zero tests, which `nx test`
+correctly flagged rather than silently passing. Same pattern as three
+earlier sessions; added a real test, fixed.
+
+`GET /users/:id`, updating a user's roles, and deactivating an account are
+NOT built — this is read-only, matching exactly what was asked for
+("can I see users") and no further. Worth a return trip if user
+management (not just visibility) becomes a real need.
+
+All 15 real projects now pass `lint` + `test` + `build` together.

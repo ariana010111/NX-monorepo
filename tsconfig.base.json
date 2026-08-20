@@ -45,6 +45,9 @@
       ],
       "@beauty-platform-validated/storefront-feature-account": [
         "./libs/storefront/feature-account/src/index.ts"
+      ],
+      "@beauty-platform-validated/admin-feature-customers-mgmt": [
+        "./libs/admin/feature-customers-mgmt/src/index.ts"
       ]
     }
   },

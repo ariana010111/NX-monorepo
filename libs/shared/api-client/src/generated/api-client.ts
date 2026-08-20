@@ -722,6 +722,37 @@ export class BeautyPlatformAPIService {
     );
   }
 
+ usersControllerFindAll<TData = UserResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ usersControllerFindAll<TData = UserResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ usersControllerFindAll<TData = UserResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  usersControllerFindAll<TData = UserResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/users`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/users`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/users`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
  productsControllerList<TData = ProductResponseDto[]>(params?: ProductsControllerListParams, options?: HttpClientBodyOptions): Observable<TData>;
  productsControllerList<TData = ProductResponseDto[]>(params?: ProductsControllerListParams, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
  productsControllerList<TData = ProductResponseDto[]>(params?: ProductsControllerListParams, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
