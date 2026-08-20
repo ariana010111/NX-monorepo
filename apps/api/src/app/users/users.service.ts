@@ -16,4 +16,8 @@ export class UsersService {
   create(data: { email: string; passwordHash: string; firstName: string; lastName: string; roles: string[] }) {
     return this.usersRepo.create(data);
   }
+
+  updatePassword(userId: string, passwordHash: string) {
+    return this.usersRepo.updatePassword(userId, passwordHash);
+  }
 }

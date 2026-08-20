@@ -6,6 +6,7 @@ export abstract class UsersRepository {
   abstract findByEmail(email: string): Promise<UserRecord | null>;
   abstract findById(id: string): Promise<UserRecord | null>;
   abstract create(data: { email: string; passwordHash: string; firstName: string; lastName: string; roles: string[] }): Promise<UserRecord>;
+  abstract updatePassword(userId: string, passwordHash: string): Promise<void>;
 }
 
 /**
@@ -47,5 +48,10 @@ export class InMemoryUsersRepository implements UsersRepository {
     const user: UserRecord = { id: `u${Date.now()}`, ...data };
     this.users.push(user);
     return user;
+  }
+
+  async updatePassword(userId: string, passwordHash: string) {
+    const user = this.users.find((u) => u.id === userId);
+    if (user) user.passwordHash = passwordHash;
   }
 }

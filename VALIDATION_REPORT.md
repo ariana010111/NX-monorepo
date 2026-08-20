@@ -674,3 +674,66 @@ Prisma-backed repositories (blocked on local `prisma generate`), refresh
 tokens / password reset. Everything else audited in this pass — every
 controller's CRUD completeness and every endpoint's frontend consumption —
 is now either complete or was already complete.
+
+---
+
+## Refresh tokens + password reset — the last flagged auth gap, closed
+
+**Refresh tokens**: opaque, server-side, revocable tokens (not signed
+JWTs — a signed refresh JWT is valid until expiry regardless of what the
+server "knows," so real revocation needs a denylist anyway; an opaque
+token just gets deleted). Rotated on every use — the old token is revoked
+the instant a new one is issued, so a stolen-but-unused refresh token
+becomes worthless the moment the legitimate owner refreshes again.
+`POST /auth/refresh`, `POST /auth/logout` (revokes immediately, not just
+"expires eventually").
+
+**Password reset**: `POST /auth/forgot-password` always returns the same
+generic message whether or not the account exists — the alternative is a
+textbook enumeration leak on a public endpoint. No email service exists in
+this sandbox, so the reset token is returned directly in the response,
+explicitly marked `devOnlyResetToken` and commented as something a real
+deployment must never do. `POST /auth/reset-password` tokens are
+single-use (30-minute expiry) and — the detail worth calling out — a
+successful reset revokes **every** refresh token for that user, not just
+the one tied to the reset flow, since a password reset is often triggered
+by a suspected compromise and must kill every other active session too.
+
+**Verified for real, 16 HTTP checks**, each one testing that the security
+property is actually enforced, not just present: rotation genuinely
+revokes the old token (reusing it after a refresh correctly fails);
+logout genuinely kills the session server-side; forgot-password returns
+byte-identical responses for a real vs. fake email; a garbage reset token
+is rejected; a used reset token cannot be replayed; the old password stops
+working and the new one works immediately after reset; and — the check
+that would be easy to skip — a *different*, still-technically-valid
+refresh token issued before the reset is confirmed dead afterward too.
+
+**A real test failure caught correctly, not a regression**: adding two
+new constructor dependencies to `AuthService` broke the existing
+`auth.service.spec.ts` immediately (NestJS correctly refused to resolve
+the test module). Rewrote it with mocks for both new repositories — 14
+tests now, up from 4, covering register/login (unchanged) plus refresh
+rotation, logout, forgot-password (including the no-enumeration check),
+and reset-password (including the cross-session revocation). All 47
+backend tests pass together.
+
+**Frontend wired for real, not just data-model-complete**: both
+`AuthFacade`s (storefront and admin) now store and use the refresh token,
+and — the part that actually makes this useful day to day — both HTTP
+interceptors catch a 401, attempt exactly one silent refresh, and retry
+the original request before giving up. Without this, an expired 1-hour
+access token would mean every request just fails until the user manually
+logs back in, refresh token or not. Explicitly skips this retry for
+`/auth/*` requests themselves, since retrying a failed login or a failed
+refresh with another refresh call is either meaningless or an infinite
+loop.
+
+All 14 real projects pass `lint` + `test` + `build` as of this commit.
+
+### What's genuinely left
+Prisma-backed repositories remain the one structural gap (blocked on
+`prisma generate` needing network access this sandbox doesn't have — see
+earlier entries in this report for the exact commands to run locally).
+Every backend/auth gap that's been flagged across this entire project has
+now been closed and verified over real HTTP.

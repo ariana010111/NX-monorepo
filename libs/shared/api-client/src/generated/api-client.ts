@@ -41,12 +41,26 @@ export interface UserResponseDto {
 
 export interface AuthResponseDto {
   accessToken: string;
+  refreshToken: string;
   user: UserResponseDto;
 }
 
 export interface LoginDto {
   email: string;
   password: string;
+}
+
+export interface RefreshTokenDto {
+  refreshToken: string;
+}
+
+export interface ForgotPasswordDto {
+  email: string;
+}
+
+export interface ResetPasswordDto {
+  token: string;
+  newPassword: string;
 }
 
 export interface ProductImageDto {
@@ -535,6 +549,142 @@ export class BeautyPlatformAPIService {
     return this.http.post<TData>(
       `/auth/login`,
       loginDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerRefresh<TData = AuthResponseDto>(refreshTokenDto: RefreshTokenDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerRefresh<TData = AuthResponseDto>(refreshTokenDto: RefreshTokenDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerRefresh<TData = AuthResponseDto>(refreshTokenDto: RefreshTokenDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerRefresh<TData = AuthResponseDto>(
+    refreshTokenDto: RefreshTokenDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/refresh`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/refresh`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/refresh`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerLogout<TData = void>(refreshTokenDto: RefreshTokenDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerLogout<TData = void>(refreshTokenDto: RefreshTokenDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerLogout<TData = void>(refreshTokenDto: RefreshTokenDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerLogout<TData = void>(
+    refreshTokenDto: RefreshTokenDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/logout`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/logout`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/logout`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerForgotPassword<TData = void>(forgotPasswordDto: ForgotPasswordDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerForgotPassword<TData = void>(forgotPasswordDto: ForgotPasswordDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerForgotPassword<TData = void>(forgotPasswordDto: ForgotPasswordDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerForgotPassword<TData = void>(
+    forgotPasswordDto: ForgotPasswordDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/forgot-password`,
+      forgotPasswordDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/forgot-password`,
+      forgotPasswordDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/forgot-password`,
+      forgotPasswordDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerResetPassword<TData = void>(resetPasswordDto: ResetPasswordDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerResetPassword<TData = void>(resetPasswordDto: ResetPasswordDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerResetPassword<TData = void>(resetPasswordDto: ResetPasswordDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerResetPassword<TData = void>(
+    resetPasswordDto: ResetPasswordDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/reset-password`,
+      resetPasswordDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/reset-password`,
+      resetPasswordDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/reset-password`,
+      resetPasswordDto,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }
