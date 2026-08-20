@@ -778,3 +778,36 @@ NOT built — this is read-only, matching exactly what was asked for
 management (not just visibility) becomes a real need.
 
 All 15 real projects now pass `lint` + `test` + `build` together.
+
+---
+
+## Users endpoint: a real gap the person caught by asking directly
+
+Direct question: "Can I see users?" Checked rather than assumed — **there
+was no `GET /users` endpoint at all.** The interesting part: the service
+layer (`UsersService.findAll()`, correctly stripping `passwordHash`) and
+the repository layer both already existed and were correctly implemented
+— only the controller file was missing, so nothing was ever exposed over
+HTTP. Added `UsersController` (`SUPER_ADMIN`-only), wired into the
+already-correct `UsersModule`.
+
+Also found: `libs/admin/feature-customers-mgmt` already had a fully
+built, correctly-wired `CustomerListComponent` (route, nav link, and test
+already in place) — it just had nothing to inject, since
+`UsersAdminApiService` didn't exist yet. Added it; everything else was
+already correct and needed no changes.
+
+**Verified with one comprehensive run covering every question asked**:
+customer GETs the product list with no auth; a customer places a real
+order and pays for it; admin POSTs a new product; admin GETs the user
+list (the fixed gap) with `passwordHash` confirmed absent from the
+response; admin GETs the order list; and a non-admin is confirmed blocked
+(401) from the user list. All 8 checks passed. All 47 backend tests still
+pass, plus admin's frontend suite.
+
+Clarified for the record: the shopping basket has **no backend** — it's
+real, functional client-side signal state (`CartFacade`), not a stub, but
+there was never a `/cart` resource in the schema or API, by original
+design (matches the very first architecture conversation, where cart was
+scoped as client-only state backed by order creation at checkout, not a
+persisted server-side cart). Worth knowing, not a bug.

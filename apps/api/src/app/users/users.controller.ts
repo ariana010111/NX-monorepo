@@ -4,8 +4,6 @@ import { UsersService } from './users.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 
-// Admin-only, no @Public() anywhere — customer accounts are internal
-// operational data, same reasoning as InventoryController.
 @Roles('SUPER_ADMIN')
 @ApiBearerAuth()
 @ApiTags('users')
