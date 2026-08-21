@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { PaymentResponseDto } from './dto/payment-response.dto';
 
 export abstract class PaymentsRepository {
-  abstract create(payment: PaymentResponseDto): Promise<PaymentResponseDto>;
+  abstract create(payment: Omit<PaymentResponseDto, 'id' | 'createdAt'>): Promise<PaymentResponseDto>;
   abstract findByOrderId(orderId: string): Promise<PaymentResponseDto[]>;
 }
 
@@ -13,15 +14,9 @@ export abstract class PaymentsRepository {
  * by a successful retry must both remain visible, not overwrite each other.
  */
 @Injectable()
-export class InMemoryPaymentsRepository implements PaymentsRepository {
-  private payments: PaymentResponseDto[] = [];
-
-  async create(payment: PaymentResponseDto) {
-    this.payments.push(payment);
-    return payment;
-  }
-
-  async findByOrderId(orderId: string) {
-    return this.payments.filter((p) => p.orderId === orderId);
-  }
+export class PrismaPaymentsRepository implements PaymentsRepository {
+  constructor(private readonly prisma: PrismaService) {}
+  private map(payment: any): PaymentResponseDto { return { id: payment.id, orderId: payment.orderId, provider: payment.provider, providerPaymentId: payment.providerPaymentId, amount: Number(payment.amount), currency: payment.currency, status: payment.status, createdAt: payment.createdAt.toISOString() }; }
+  async create(payment: Omit<PaymentResponseDto, 'id' | 'createdAt'>) { return this.map(await this.prisma.payment.create({ data: { orderId: payment.orderId, provider: payment.provider as any, providerPaymentId: payment.providerPaymentId, amount: payment.amount, currency: payment.currency, status: payment.status as any } })); }
+  async findByOrderId(orderId: string) { return (await this.prisma.payment.findMany({ where: { orderId }, orderBy: { createdAt: 'asc' } })).map((payment) => this.map(payment)); }
 }

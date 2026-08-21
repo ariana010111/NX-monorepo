@@ -10,9 +10,11 @@ import { AuthModule } from './auth/auth.module';
 import { CouponsModule } from './coupons/coupons.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { PaymentsModule } from './payments/payments.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
+    PrismaModule,
     AuthModule,
     CatalogModule,
     CategoriesModule,

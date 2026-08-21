@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { randomBytes } from 'crypto';
+import { PrismaService } from '../prisma/prisma.service';
 
 interface RefreshTokenRecord {
   token: string;
@@ -29,27 +30,10 @@ const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
  * next schema revision, not into this file).
  */
 @Injectable()
-export class InMemoryRefreshTokensRepository implements RefreshTokensRepository {
-  private tokens: RefreshTokenRecord[] = [];
-
-  async create(userId: string) {
-    const token = randomBytes(32).toString('hex');
-    this.tokens.push({ token, userId, expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS) });
-    return token;
-  }
-
-  async findValid(token: string) {
-    const record = this.tokens.find((t) => t.token === token);
-    if (!record) return null;
-    if (record.expiresAt < new Date()) return null; // expired — treated the same as not found
-    return record;
-  }
-
-  async revoke(token: string) {
-    this.tokens = this.tokens.filter((t) => t.token !== token);
-  }
-
-  async revokeAllForUser(userId: string) {
-    this.tokens = this.tokens.filter((t) => t.userId !== userId);
-  }
+export class PrismaRefreshTokensRepository implements RefreshTokensRepository {
+  constructor(private readonly prisma: PrismaService) {}
+  async create(userId: string) { const token = randomBytes(32).toString('hex'); await this.prisma.refreshToken.create({ data: { token, userId, expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS) } }); return token; }
+  async findValid(token: string) { const record = await this.prisma.refreshToken.findFirst({ where: { token, revokedAt: null, expiresAt: { gt: new Date() } } }); return record ? { token: record.token, userId: record.userId, expiresAt: record.expiresAt } : null; }
+  async revoke(token: string) { await this.prisma.refreshToken.updateMany({ where: { token, revokedAt: null }, data: { revokedAt: new Date() } }); }
+  async revokeAllForUser(userId: string) { await this.prisma.refreshToken.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } }); }
 }

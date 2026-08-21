@@ -21,28 +21,23 @@ First command boots Nest in document-mode (no server, no networking) and writes
 libs/shared/api-client/openapi.json. Second command regenerates the Angular
 client from it. Run both after any DTO/controller change.
 
-## Prisma — action required before continuing
-`prisma/schema.prisma` is in place (your approved schema) but `prisma validate`
-/ `prisma generate` could NOT be run in the sandbox this was built in — the
-engine binaries are hosted at binaries.prisma.sh, which that sandbox's network
-policy blocks (confirmed: 403 host_not_allowed). Locally, run:
+## Prisma and MySQL
+Prisma 7.9.1 is configured with the local MySQL database through
+`prisma/prisma.config.ts`. Prisma Client is generated, the schema is
+synchronized with MySQL, and API repositories use `PrismaService` as the
+persistence layer. Run these commands after pulling schema changes:
 ```
 npx prisma generate --schema=prisma/schema.prisma
-npx prisma migrate dev --schema=prisma/schema.prisma --name init
+npx prisma db push --schema=prisma/schema.prisma
+npx ts-node prisma/seed.ts
 ```
-apps/api/src/app/catalog/products.repository.ts currently uses an
-InMemoryProductsRepository so the rest of the pipeline could be validated
-without Prisma. Once `prisma generate` succeeds locally, swap it for a
-PrismaService-backed implementation using the same ProductsRepository
-abstract contract — the service/controller/DTOs don't change.
 
 ## What's real vs. what's still a stub
-Real and tested: Nx workspace + all 11 projects, the enforced module
-boundaries (six forbidden-import cases individually proven — see report),
-the full OpenAPI→Orval→Angular pipeline against a live Nest boot, the
-CartFacade signals/computed pattern with unit tests, SSR build+prerender
-for storefront, CSR build for admin.
+Real and database-backed: catalog, brands, categories, inventory, coupons,
+orders, payments, reviews, users, refresh tokens, and password-reset tokens.
+Create/update operations use Prisma and generated IDs, and related writes use
+transactions where needed.
 
-Still stub/pending: every Nest module other than catalog, every storefront
-feature other than cart, all admin features, the real Prisma-backed
-repository (blocked on local `prisma generate`), CI pipeline config.
+Still stub/pending: payment gateway integration remains a mock provider, some
+storefront/admin features are incomplete, and CI pipeline configuration is
+still pending.

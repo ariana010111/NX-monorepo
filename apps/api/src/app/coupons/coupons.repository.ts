@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CouponRecord } from './coupon.types';
 
 export abstract class CouponsRepository {
@@ -6,7 +7,7 @@ export abstract class CouponsRepository {
 }
 
 /**
- * TEMPORARY in-memory implementation. Seeded with two demo coupons so the
+ * Reads active coupons from Prisma. Seed data is created by prisma/seed.ts.
  * checkout flow has something real to validate against:
  *   WELCOME10  — 10% off, no minimum
  *   FLAT5      — $5 off orders of $30+
@@ -16,21 +17,11 @@ export abstract class CouponsRepository {
  * stub; see CouponsService for what's actually enforced here).
  */
 @Injectable()
-export class InMemoryCouponsRepository implements CouponsRepository {
-  private coupons: CouponRecord[] = [
-    { id: 'cp1', code: 'WELCOME10', type: 'PERCENTAGE', value: 10, isActive: true },
-    { id: 'cp2', code: 'FLAT5', type: 'FIXED_AMOUNT', value: 5, minOrderAmount: 30, isActive: true },
-    {
-      id: 'cp3',
-      code: 'EXPIRED10',
-      type: 'PERCENTAGE',
-      value: 10,
-      isActive: true,
-      expiresAt: '2020-01-01T00:00:00.000Z', // seeded expired, for testing the expiry path
-    },
-  ];
-
+export class PrismaCouponsRepository implements CouponsRepository {
+  constructor(private readonly prisma: PrismaService) {}
   async findByCode(code: string) {
-    return this.coupons.find((c) => c.code.toUpperCase() === code.toUpperCase()) ?? null;
+    const coupon = await this.prisma.coupon.findUnique({ where: { code: code.toUpperCase() } });
+    if (!coupon) return null;
+    return { id: coupon.id, code: coupon.code, type: coupon.type, value: Number(coupon.value), minOrderAmount: coupon.minOrderAmount == null ? undefined : Number(coupon.minOrderAmount), maxDiscountAmount: coupon.maxDiscountAmount == null ? undefined : Number(coupon.maxDiscountAmount), isActive: coupon.isActive, expiresAt: coupon.endsAt?.toISOString() } satisfies CouponRecord;
   }
 }

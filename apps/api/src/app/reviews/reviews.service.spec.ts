@@ -39,7 +39,7 @@ describe('ReviewsService', () => {
     ordersService.listForUser.mockResolvedValue([
       { status: 'PAID', items: [{ variantId: 'v1' }] } as any,
     ]);
-    reviewsRepo.create.mockImplementation(async (r) => r);
+    reviewsRepo.create.mockImplementation(async (r) => ({ ...r, id: 'test-review', authorName: 'Test User', createdAt: new Date().toISOString() }));
 
     const result = await service.create({ productId: 'p1', rating: 5 }, authUser);
     expect(result.isVerifiedPurchase).toBe(true);
@@ -51,7 +51,7 @@ describe('ReviewsService', () => {
     ordersService.listForUser.mockResolvedValue([
       { status: 'PENDING_PAYMENT', items: [{ variantId: 'v1' }] } as any,
     ]);
-    reviewsRepo.create.mockImplementation(async (r) => r);
+    reviewsRepo.create.mockImplementation(async (r) => ({ ...r, id: 'test-review', authorName: 'Test User', createdAt: new Date().toISOString() }));
 
     const result = await service.create({ productId: 'p1', rating: 5 }, authUser);
     expect(result.isVerifiedPurchase).toBe(false);
@@ -63,7 +63,7 @@ describe('ReviewsService', () => {
     ordersService.listForUser.mockResolvedValue([
       { status: 'PAID', items: [{ variantId: 'v99-unrelated-product' }] } as any,
     ]);
-    reviewsRepo.create.mockImplementation(async (r) => r);
+    reviewsRepo.create.mockImplementation(async (r) => ({ ...r, id: 'test-review', authorName: 'Test User', createdAt: new Date().toISOString() }));
 
     const result = await service.create({ productId: 'p1', rating: 5 }, authUser);
     expect(result.isVerifiedPurchase).toBe(false);
@@ -81,7 +81,7 @@ describe('ReviewsService', () => {
     productsService.getById.mockResolvedValue(product);
     reviewsRepo.findByUserAndProduct.mockResolvedValue(null);
     ordersService.listForUser.mockResolvedValue([{ status: 'PAID', items: [{ variantId: 'v1' }] } as any]);
-    reviewsRepo.create.mockImplementation(async (r) => r);
+    reviewsRepo.create.mockImplementation(async (r) => ({ ...r, id: 'test-review', authorName: 'Test User', createdAt: new Date().toISOString() }));
 
     const result = await service.create({ productId: 'p1', rating: 5 }, authUser);
     expect(result.status).toBe('PENDING');

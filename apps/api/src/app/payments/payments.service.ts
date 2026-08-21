@@ -29,7 +29,6 @@ export class PaymentsService {
     });
 
     const payment = await this.paymentsRepo.create({
-      id: `pay${Date.now()}`,
       orderId,
       provider: 'MOCK',
       providerPaymentId: result.providerPaymentId,
@@ -37,7 +36,6 @@ export class PaymentsService {
       currency: order.currency,
       status: result.success ? 'SUCCEEDED' : 'FAILED',
       failureReason: result.failureReason,
-      createdAt: new Date().toISOString(),
     });
 
     if (result.success) {

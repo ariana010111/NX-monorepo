@@ -55,9 +55,7 @@ export class ProductsService {
   async addVariant(productId: string, dto: CreateVariantDto): Promise<ProductResponseDto> {
     const product = await this.getById(productId); // throws 404 if the product doesn't exist
 
-    const variantId = `v${Date.now()}`;
     const updated = await this.productsRepo.addVariant(productId, {
-      id: variantId,
       sku: dto.sku,
       price: dto.price,
       compareAtPrice: dto.compareAtPrice,
@@ -66,6 +64,9 @@ export class ProductsService {
       imageUrl: dto.imageUrl,
     });
     if (!updated) throw new NotFoundException(`Product "${productId}" not found`);
+
+    const variantId = updated.variants.find((variant) => variant.sku === dto.sku)?.id;
+    if (!variantId) throw new NotFoundException(`Variant "${dto.sku}" was not created`);
 
     await this.inventoryService.initializeForVariant({
       variantId,

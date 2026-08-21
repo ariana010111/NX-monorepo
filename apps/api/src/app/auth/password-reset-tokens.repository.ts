@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { randomBytes } from 'crypto';
+import { PrismaService } from '../prisma/prisma.service';
 
 interface ResetTokenRecord {
   token: string;
@@ -22,23 +23,9 @@ const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes — short-lived, unlike
  * replayable even within its 30-minute window.
  */
 @Injectable()
-export class InMemoryPasswordResetTokensRepository implements PasswordResetTokensRepository {
-  private tokens: ResetTokenRecord[] = [];
-
-  async create(userId: string) {
-    const token = randomBytes(32).toString('hex');
-    this.tokens.push({ token, userId, expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS), used: false });
-    return token;
-  }
-
-  async findValid(token: string) {
-    const record = this.tokens.find((t) => t.token === token);
-    if (!record || record.used || record.expiresAt < new Date()) return null;
-    return record;
-  }
-
-  async markUsed(token: string) {
-    const record = this.tokens.find((t) => t.token === token);
-    if (record) record.used = true;
-  }
+export class PrismaPasswordResetTokensRepository implements PasswordResetTokensRepository {
+  constructor(private readonly prisma: PrismaService) {}
+  async create(userId: string) { const token = randomBytes(32).toString('hex'); await this.prisma.passwordResetToken.create({ data: { token, userId, expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS) } }); return token; }
+  async findValid(token: string) { const record = await this.prisma.passwordResetToken.findFirst({ where: { token, usedAt: null, expiresAt: { gt: new Date() } } }); return record ? { token: record.token, userId: record.userId, expiresAt: record.expiresAt, used: false } : null; }
+  async markUsed(token: string) { await this.prisma.passwordResetToken.updateMany({ where: { token, usedAt: null }, data: { usedAt: new Date() } }); }
 }

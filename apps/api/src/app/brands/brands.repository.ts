@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { BrandResponseDto } from './dto/brand-response.dto';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
@@ -11,35 +12,18 @@ export abstract class BrandsRepository {
   abstract delete(id: string): Promise<boolean>;
 }
 
-/** TEMPORARY in-memory implementation — same pattern as ProductsRepository. */
 @Injectable()
-export class InMemoryBrandsRepository implements BrandsRepository {
-  private brands: BrandResponseDto[] = [
-    { id: 'b1', name: 'Lumière', slug: 'lumiere' },
-    { id: 'b2', name: 'Verdant Botanics', slug: 'verdant-botanics' },
-  ];
+export class PrismaBrandsRepository implements BrandsRepository {
+  constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
-    return this.brands;
+  private map(brand: any): BrandResponseDto {
+    return { id: brand.id, name: brand.name, slug: brand.slug, logoUrl: brand.logoUrl ?? undefined };
   }
-  async findBySlug(slug: string) {
-    return this.brands.find((b) => b.slug === slug) ?? null;
-  }
-  async create(dto: CreateBrandDto) {
-    const created: BrandResponseDto = { id: `b${Date.now()}`, ...dto };
-    this.brands.push(created);
-    return created;
-  }
-  async update(id: string, dto: UpdateBrandDto) {
-    const brand = this.brands.find((b) => b.id === id);
-    if (!brand) return null;
-    Object.assign(brand, dto);
-    return brand;
-  }
-  async delete(id: string) {
-    const index = this.brands.findIndex((b) => b.id === id);
-    if (index === -1) return false;
-    this.brands.splice(index, 1);
-    return true;
-  }
+
+  async findAll() { return (await this.prisma.brand.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } })).map((brand) => this.map(brand)); }
+  async findBySlug(slug: string) { const brand = await this.prisma.brand.findFirst({ where: { slug, isActive: true } }); return brand ? this.map(brand) : null; }
+  async create(dto: CreateBrandDto) { return this.map(await this.prisma.brand.create({ data: dto })); }
+  async update(id: string, dto: UpdateBrandDto) { const result = await this.prisma.brand.updateMany({ where: { id, isActive: true }, data: dto }); if (!result.count) return null; return this.map(await this.prisma.brand.findUniqueOrThrow({ where: { id } })); }
+  async delete(id: string) { const result = await this.prisma.brand.updateMany({ where: { id, isActive: true }, data: { isActive: false } }); return result.count > 0; }
 }
+

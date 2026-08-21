@@ -9,8 +9,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { UsersModule } from '../users/users.module';
 import { JWT_SECRET, JWT_EXPIRES_IN } from './auth.constants';
-import { RefreshTokensRepository, InMemoryRefreshTokensRepository } from './refresh-tokens.repository';
-import { PasswordResetTokensRepository, InMemoryPasswordResetTokensRepository } from './password-reset-tokens.repository';
+import { RefreshTokensRepository, PrismaRefreshTokensRepository } from './refresh-tokens.repository';
+import { PasswordResetTokensRepository, PrismaPasswordResetTokensRepository } from './password-reset-tokens.repository';
 
 @Module({
   imports: [
@@ -22,8 +22,8 @@ import { PasswordResetTokensRepository, InMemoryPasswordResetTokensRepository } 
   providers: [
     AuthService,
     JwtStrategy,
-    { provide: RefreshTokensRepository, useClass: InMemoryRefreshTokensRepository },
-    { provide: PasswordResetTokensRepository, useClass: InMemoryPasswordResetTokensRepository },
+    { provide: RefreshTokensRepository, useClass: PrismaRefreshTokensRepository },
+    { provide: PasswordResetTokensRepository, useClass: PrismaPasswordResetTokensRepository },
     // Both guards applied globally, in order: authenticate first, then
     // authorize. Individual routes opt out of auth with @Public() and opt
     // into role checks with @Roles(...).

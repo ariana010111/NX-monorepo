@@ -37,7 +37,6 @@ export class ReviewsService {
     const isVerifiedPurchase = await this.checkVerifiedPurchase(user.userId, product.id, product.variants.map((v) => v.id));
 
     const review = {
-      id: `rv${Date.now()}`,
       productId: dto.productId,
       userId: user.userId,
       authorName: `${user.email.split('@')[0]}`, // real Prisma version uses User.firstName + lastName initial
