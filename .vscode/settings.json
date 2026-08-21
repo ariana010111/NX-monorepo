@@ -1,0 +1,19 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "beauty_marketplace",
+            "database": "beauty_marketplace",
+            "username": "root",
+            "password": "1mag1neFullStackEngineer@"
+        }
+    ]
+}

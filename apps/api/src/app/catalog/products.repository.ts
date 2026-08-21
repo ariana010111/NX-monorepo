@@ -22,64 +22,66 @@ export abstract class ProductsRepository {
  * ProductsController don't change at all.
  */
 @Injectable()
-export class InMemoryProductsRepository implements ProductsRepository {
-  private products: ProductResponseDto[] = [
-    {
-      id: 'p1',
-      name: 'Velvet Matte Lipstick',
-      slug: 'velvet-matte-lipstick',
-      status: 'ACTIVE',
-      description: 'A long-wear matte lipstick with a weightless, non-drying finish.',
-      shortDescription: 'Long-wear matte finish.',
-      brandName: 'Lumière',
-      brandSlug: 'lumiere',
-      fromPrice: 24,
-      images: [{ url: 'https://picsum.photos/seed/lipstick/600/600', altText: 'Velvet Matte Lipstick', isPrimary: true }],
-      variants: [
-        {
-          id: 'v1',
-          sku: 'VML-ROSY',
-          price: 24,
-          isActive: true,
-          attributes: [{ attributeName: 'Shade', value: 'Rosy Pink', colorHex: '#c97b8f' }],
-          imageUrl: 'https://picsum.photos/seed/rosy/600/600',
-        },
-        {
-          id: 'v2',
-          sku: 'VML-BRICK',
-          price: 24,
-          isActive: true,
-          attributes: [{ attributeName: 'Shade', value: 'Brick Red', colorHex: '#a13c32' }],
-          imageUrl: 'https://picsum.photos/seed/brick/600/600',
-        },
-        {
-          id: 'v3',
-          sku: 'VML-NUDE',
-          price: 26,
-          compareAtPrice: 24,
-          isActive: true,
-          attributes: [{ attributeName: 'Shade', value: 'Nude Blush', colorHex: '#d8a892' }],
-          imageUrl: 'https://picsum.photos/seed/nude/600/600',
-        },
-      ],
-    },
-    {
-      id: 'p2',
-      name: 'Hydrating Rose Serum',
-      slug: 'hydrating-rose-serum',
-      status: 'ACTIVE',
-      description: 'A lightweight serum with rose extract and hyaluronic acid for all skin types.',
-      shortDescription: 'All skin types, 30/50ml.',
-      brandName: 'Verdant Botanics',
-      brandSlug: 'verdant-botanics',
-      fromPrice: 32,
-      images: [{ url: 'https://picsum.photos/seed/serum/600/600', altText: 'Hydrating Rose Serum', isPrimary: true }],
-      variants: [
-        { id: 'v4', sku: 'HRS-30', price: 32, isActive: true, attributes: [{ attributeName: 'Size', value: '30ml' }] },
-        { id: 'v5', sku: 'HRS-50', price: 48, isActive: true, attributes: [{ attributeName: 'Size', value: '50ml' }] },
-      ],
-    },
-  ];
+export class PrismaProductsRepository implements ProductsRepository {
+  // private products: ProductResponseDto[] = [
+  //   {
+  //     id: 'p1',
+  //     name: 'Velvet Matte Lipstick',
+  //     slug: 'velvet-matte-lipstick',
+  //     status: 'ACTIVE',
+  //     description: 'A long-wear matte lipstick with a weightless, non-drying finish.',
+  //     shortDescription: 'Long-wear matte finish.',
+  //     brandName: 'Lumière',
+  //     brandSlug: 'lumiere',
+  //     fromPrice: 24,
+  //     images: [{ url: 'https://picsum.photos/seed/lipstick/600/600', altText: 'Velvet Matte Lipstick', isPrimary: true }],
+  //     variants: [
+  //       {
+  //         id: 'v1',
+  //         sku: 'VML-ROSY',
+  //         price: 24,
+  //         isActive: true,
+  //         attributes: [{ attributeName: 'Shade', value: 'Rosy Pink', colorHex: '#c97b8f' }],
+  //         imageUrl: 'https://picsum.photos/seed/rosy/600/600',
+  //       },
+  //       {
+  //         id: 'v2',
+  //         sku: 'VML-BRICK',
+  //         price: 24,
+  //         isActive: true,
+  //         attributes: [{ attributeName: 'Shade', value: 'Brick Red', colorHex: '#a13c32' }],
+  //         imageUrl: 'https://picsum.photos/seed/brick/600/600',
+  //       },
+  //       {
+  //         id: 'v3',
+  //         sku: 'VML-NUDE',
+  //         price: 26,
+  //         compareAtPrice: 24,
+  //         isActive: true,
+  //         attributes: [{ attributeName: 'Shade', value: 'Nude Blush', colorHex: '#d8a892' }],
+  //         imageUrl: 'https://picsum.photos/seed/nude/600/600',
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 'p2',
+  //     name: 'Hydrating Rose Serum',
+  //     slug: 'hydrating-rose-serum',
+  //     status: 'ACTIVE',
+  //     description: 'A lightweight serum with rose extract and hyaluronic acid for all skin types.',
+  //     shortDescription: 'All skin types, 30/50ml.',
+  //     brandName: 'Verdant Botanics',
+  //     brandSlug: 'verdant-botanics',
+  //     fromPrice: 32,
+  //     images: [{ url: 'https://picsum.photos/seed/serum/600/600', altText: 'Hydrating Rose Serum', isPrimary: true }],
+  //     variants: [
+  //       { id: 'v4', sku: 'HRS-30', price: 32, isActive: true, attributes: [{ attributeName: 'Size', value: '30ml' }] },
+  //       { id: 'v5', sku: 'HRS-50', price: 48, isActive: true, attributes: [{ attributeName: 'Size', value: '50ml' }] },
+  //     ],
+  //   },
+  // ];
+
+  constructor(private readonly prisma: PrismaService) {}
 
   private nextProductId = 3; // p1, p2 are seeded above
 
