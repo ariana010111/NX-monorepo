@@ -27,6 +27,27 @@
       ],
       "@beauty-platform-validated/storefront-feature-cart": [
         "./libs/storefront/feature-cart/src/index.ts"
+      ],
+      "@beauty-platform-validated/storefront-feature-catalog": [
+        "./libs/storefront/feature-catalog/src/index.ts"
+      ],
+      "@beauty-platform-validated/admin-data-access": [
+        "./libs/admin/data-access/src/index.ts"
+      ],
+      "@beauty-platform-validated/admin-feature-catalog-mgmt": [
+        "./libs/admin/feature-catalog-mgmt/src/index.ts"
+      ],
+      "@beauty-platform-validated/storefront-feature-checkout": [
+        "./libs/storefront/feature-checkout/src/index.ts"
+      ],
+      "@beauty-platform-validated/admin-feature-orders-mgmt": [
+        "./libs/admin/feature-orders-mgmt/src/index.ts"
+      ],
+      "@beauty-platform-validated/storefront-feature-account": [
+        "./libs/storefront/feature-account/src/index.ts"
+      ],
+      "@beauty-platform-validated/admin-feature-customers-mgmt": [
+        "./libs/admin/feature-customers-mgmt/src/index.ts"
       ]
     }
   },

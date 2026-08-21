@@ -1,2 +1,11 @@
-<app-nx-welcome></app-nx-welcome>
+@if (authFacade.isAuthenticated()) {
+  <nav>
+    <a routerLink="/orders">Orders</a>
+    <a routerLink="/products">Products</a>
+    <a routerLink="/taxonomy">Categories &amp; Brands</a>
+    <a routerLink="/inventory">Inventory</a>
+    <a routerLink="/customers">Customers</a>
+    <button type="button" (click)="authFacade.logout()">Log out</button>
+  </nav>
+}
 <router-outlet></router-outlet>

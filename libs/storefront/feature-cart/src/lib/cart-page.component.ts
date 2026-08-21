@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { CartFacade } from './cart.facade';
+import { CartFacade } from '@beauty-platform-validated/storefront-data-access';
 
 @Component({
   selector: 'beauty-cart-page',

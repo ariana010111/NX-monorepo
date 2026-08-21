@@ -24,12 +24,79 @@ import {
   Observable
 } from 'rxjs';
 
+export interface RegisterDto {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface UserResponseDto {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: string[];
+}
+
+export interface AuthResponseDto {
+  accessToken: string;
+  refreshToken: string;
+  user: UserResponseDto;
+}
+
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
+export interface RefreshTokenDto {
+  refreshToken: string;
+}
+
+export interface ForgotPasswordDto {
+  email: string;
+}
+
+export interface ResetPasswordDto {
+  token: string;
+  newPassword: string;
+}
+
+export interface ProductImageDto {
+  url: string;
+  altText?: string;
+  isPrimary: boolean;
+}
+
+export interface VariantAttributeDto {
+  attributeName: string;
+  value: string;
+  colorHex?: string;
+}
+
+export interface ProductVariantDto {
+  id: string;
+  sku: string;
+  price: number;
+  compareAtPrice?: number;
+  isActive: boolean;
+  attributes: VariantAttributeDto[];
+  imageUrl?: string;
+}
+
 export interface ProductResponseDto {
   id: string;
   name: string;
   slug: string;
   description?: string;
+  shortDescription?: string;
+  brandName?: string;
+  brandSlug?: string;
   status: string;
+  images: ProductImageDto[];
+  variants: ProductVariantDto[];
+  fromPrice?: number;
 }
 
 export interface CreateProductDto {
@@ -38,9 +105,247 @@ export interface CreateProductDto {
   description?: string;
 }
 
+export type UpdateProductDtoStatus = typeof UpdateProductDtoStatus[keyof typeof UpdateProductDtoStatus];
+
+
+export const UpdateProductDtoStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED',
+} as const;
+
+export interface UpdateProductDto {
+  name?: string;
+  description?: string;
+  shortDescription?: string;
+  status?: UpdateProductDtoStatus;
+}
+
+export interface VariantAttributeInputDto {
+  attributeName: string;
+  value: string;
+  colorHex?: string;
+}
+
+export interface CreateVariantDto {
+  sku: string;
+  price: number;
+  compareAtPrice?: number;
+  imageUrl?: string;
+  attributes: VariantAttributeInputDto[];
+  initialStock?: number;
+}
+
+export interface AddImageDto {
+  url: string;
+  altText?: string;
+  isPrimary?: boolean;
+}
+
+export interface InventoryItemResponseDto {
+  variantId: string;
+  productName: string;
+  variantLabel: string;
+  quantityOnHand: number;
+  quantityReserved: number;
+  quantityAvailable: number;
+  lowStockThreshold: number;
+}
+
+export interface AdjustStockDto {
+  quantityChange: number;
+  note?: string;
+}
+
+export interface CategoryResponseDto {
+  id: string;
+  name: string;
+  slug: string;
+  /** @nullable */
+  parentId?: string | null;
+  imageUrl?: string;
+  children?: CategoryResponseDto[];
+}
+
+export interface CreateCategoryDto {
+  name: string;
+  slug: string;
+  parentId?: string;
+}
+
+export interface UpdateCategoryDto {
+  name?: string;
+  slug?: string;
+}
+
+export interface BrandResponseDto {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl?: string;
+}
+
+export interface CreateBrandDto {
+  name: string;
+  slug: string;
+  logoUrl?: string;
+}
+
+export interface UpdateBrandDto {
+  name?: string;
+  slug?: string;
+  logoUrl?: string;
+}
+
+export interface ValidateCouponResponseDto {
+  code: string;
+  discountAmount: number;
+}
+
+export interface OrderItemResponseDto {
+  variantId: string;
+  productName: string;
+  variantLabel: string;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+}
+
+export interface OrderResponseDto {
+  id: string;
+  orderNumber: string;
+  email: string;
+  /** @nullable */
+  userId?: string | null;
+  status: string;
+  currency: string;
+  subtotal: number;
+  discountTotal?: number;
+  couponCode?: string;
+  grandTotal: number;
+  items: OrderItemResponseDto[];
+  placedAt: string;
+}
+
+export interface ShippingAddressInputDto {
+  fullName: string;
+  line1: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
+
+export interface OrderItemInputDto {
+  variantId: string;
+  productName: string;
+  variantLabel: string;
+  unitPrice: number;
+  quantity: number;
+}
+
+export interface CreateOrderDto {
+  email: string;
+  couponCode?: string;
+  shippingAddress: ShippingAddressInputDto;
+  items: OrderItemInputDto[];
+}
+
+export type UpdateOrderStatusDtoStatus = typeof UpdateOrderStatusDtoStatus[keyof typeof UpdateOrderStatusDtoStatus];
+
+
+export const UpdateOrderStatusDtoStatus = {
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  PAID: 'PAID',
+  PROCESSING: 'PROCESSING',
+  SHIPPED: 'SHIPPED',
+  DELIVERED: 'DELIVERED',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED',
+} as const;
+
+export interface UpdateOrderStatusDto {
+  status: UpdateOrderStatusDtoStatus;
+}
+
+export type ReviewResponseDtoStatus = typeof ReviewResponseDtoStatus[keyof typeof ReviewResponseDtoStatus];
+
+
+export const ReviewResponseDtoStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+} as const;
+
+export interface ReviewResponseDto {
+  id: string;
+  productId: string;
+  userId: string;
+  authorName: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  title?: string;
+  body?: string;
+  status: ReviewResponseDtoStatus;
+  isVerifiedPurchase: boolean;
+  createdAt: string;
+}
+
+export interface CreateReviewDto {
+  productId: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  title?: string;
+  body?: string;
+}
+
+export type ModerateReviewDtoStatus = typeof ModerateReviewDtoStatus[keyof typeof ModerateReviewDtoStatus];
+
+
+export const ModerateReviewDtoStatus = {
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+} as const;
+
+export interface ModerateReviewDto {
+  status: ModerateReviewDtoStatus;
+}
+
+export type PaymentResponseDtoStatus = typeof PaymentResponseDtoStatus[keyof typeof PaymentResponseDtoStatus];
+
+
+export const PaymentResponseDtoStatus = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+} as const;
+
+export interface PaymentResponseDto {
+  id: string;
+  orderId: string;
+  provider: string;
+  providerPaymentId: string;
+  amount: number;
+  currency: string;
+  status: PaymentResponseDtoStatus;
+  failureReason?: string;
+  createdAt: string;
+}
+
 export type ProductsControllerListParams = {
-page: number;
-pageSize: number;
+page?: number;
+pageSize?: number;
+category?: string;
+brand?: string;
+};
+
+export type CouponsControllerValidateParams = {
+subtotal: number;
 };
 
 interface HttpClientOptions {
@@ -182,11 +487,277 @@ export class BeautyPlatformAPIService {
     );
   }
 
- productsControllerList<TData = ProductResponseDto[]>(params: ProductsControllerListParams, options?: HttpClientBodyOptions): Observable<TData>;
- productsControllerList<TData = ProductResponseDto[]>(params: ProductsControllerListParams, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- productsControllerList<TData = ProductResponseDto[]>(params: ProductsControllerListParams, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+ authControllerRegister<TData = AuthResponseDto>(registerDto: RegisterDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerRegister<TData = AuthResponseDto>(registerDto: RegisterDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerRegister<TData = AuthResponseDto>(registerDto: RegisterDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerRegister<TData = AuthResponseDto>(
+    registerDto: RegisterDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/register`,
+      registerDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/register`,
+      registerDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/register`,
+      registerDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerLogin<TData = AuthResponseDto>(loginDto: LoginDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerLogin<TData = AuthResponseDto>(loginDto: LoginDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerLogin<TData = AuthResponseDto>(loginDto: LoginDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerLogin<TData = AuthResponseDto>(
+    loginDto: LoginDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/login`,
+      loginDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/login`,
+      loginDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/login`,
+      loginDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerRefresh<TData = AuthResponseDto>(refreshTokenDto: RefreshTokenDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerRefresh<TData = AuthResponseDto>(refreshTokenDto: RefreshTokenDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerRefresh<TData = AuthResponseDto>(refreshTokenDto: RefreshTokenDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerRefresh<TData = AuthResponseDto>(
+    refreshTokenDto: RefreshTokenDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/refresh`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/refresh`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/refresh`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerLogout<TData = void>(refreshTokenDto: RefreshTokenDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerLogout<TData = void>(refreshTokenDto: RefreshTokenDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerLogout<TData = void>(refreshTokenDto: RefreshTokenDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerLogout<TData = void>(
+    refreshTokenDto: RefreshTokenDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/logout`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/logout`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/logout`,
+      refreshTokenDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerForgotPassword<TData = void>(forgotPasswordDto: ForgotPasswordDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerForgotPassword<TData = void>(forgotPasswordDto: ForgotPasswordDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerForgotPassword<TData = void>(forgotPasswordDto: ForgotPasswordDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerForgotPassword<TData = void>(
+    forgotPasswordDto: ForgotPasswordDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/forgot-password`,
+      forgotPasswordDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/forgot-password`,
+      forgotPasswordDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/forgot-password`,
+      forgotPasswordDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerResetPassword<TData = void>(resetPasswordDto: ResetPasswordDto, options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerResetPassword<TData = void>(resetPasswordDto: ResetPasswordDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerResetPassword<TData = void>(resetPasswordDto: ResetPasswordDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerResetPassword<TData = void>(
+    resetPasswordDto: ResetPasswordDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/auth/reset-password`,
+      resetPasswordDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/auth/reset-password`,
+      resetPasswordDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/auth/reset-password`,
+      resetPasswordDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ authControllerMe<TData = void>( options?: HttpClientBodyOptions): Observable<TData>;
+ authControllerMe<TData = void>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ authControllerMe<TData = void>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  authControllerMe<TData = void>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/auth/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/auth/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/auth/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ usersControllerFindAll<TData = UserResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ usersControllerFindAll<TData = UserResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ usersControllerFindAll<TData = UserResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  usersControllerFindAll<TData = UserResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/users`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/users`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/users`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ productsControllerList<TData = ProductResponseDto[]>(params?: ProductsControllerListParams, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerList<TData = ProductResponseDto[]>(params?: ProductsControllerListParams, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerList<TData = ProductResponseDto[]>(params?: ProductsControllerListParams, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
   productsControllerList<TData = ProductResponseDto[]>(
-    params: ProductsControllerListParams, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    params?: ProductsControllerListParams, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     const filteredParams = filterParams({...params, ...options?.params}, new Set<string>([]));
 
     if (options?.observe === 'events') {
@@ -249,6 +820,37 @@ export class BeautyPlatformAPIService {
     );
   }
 
+ productsControllerGetById<TData = ProductResponseDto>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerGetById<TData = ProductResponseDto>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerGetById<TData = ProductResponseDto>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  productsControllerGetById<TData = ProductResponseDto>(
+    id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/products/by-id/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/products/by-id/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/products/by-id/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
  productsControllerGetBySlug<TData = ProductResponseDto>(slug: string, options?: HttpClientBodyOptions): Observable<TData>;
  productsControllerGetBySlug<TData = ProductResponseDto>(slug: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
  productsControllerGetBySlug<TData = ProductResponseDto>(slug: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
@@ -274,6 +876,982 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/products/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ productsControllerUpdate<TData = ProductResponseDto>(id: string,
+    updateProductDto: UpdateProductDto, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerUpdate<TData = ProductResponseDto>(id: string,
+    updateProductDto: UpdateProductDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerUpdate<TData = ProductResponseDto>(id: string,
+    updateProductDto: UpdateProductDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  productsControllerUpdate<TData = ProductResponseDto>(
+    id: string,
+    updateProductDto: UpdateProductDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/products/${id}`,
+      updateProductDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/products/${id}`,
+      updateProductDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/products/${id}`,
+      updateProductDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ productsControllerDelete<TData = void>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerDelete<TData = void>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerDelete<TData = void>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  productsControllerDelete<TData = void>(
+    id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.delete<TData>(
+      `/products/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.delete<TData>(
+      `/products/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.delete<TData>(
+      `/products/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ productsControllerAddVariant<TData = ProductResponseDto>(id: string,
+    createVariantDto: CreateVariantDto, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerAddVariant<TData = ProductResponseDto>(id: string,
+    createVariantDto: CreateVariantDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerAddVariant<TData = ProductResponseDto>(id: string,
+    createVariantDto: CreateVariantDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  productsControllerAddVariant<TData = ProductResponseDto>(
+    id: string,
+    createVariantDto: CreateVariantDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/products/${id}/variants`,
+      createVariantDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/products/${id}/variants`,
+      createVariantDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/products/${id}/variants`,
+      createVariantDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ productsControllerAddImage<TData = ProductResponseDto>(id: string,
+    addImageDto: AddImageDto, options?: HttpClientBodyOptions): Observable<TData>;
+ productsControllerAddImage<TData = ProductResponseDto>(id: string,
+    addImageDto: AddImageDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ productsControllerAddImage<TData = ProductResponseDto>(id: string,
+    addImageDto: AddImageDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  productsControllerAddImage<TData = ProductResponseDto>(
+    id: string,
+    addImageDto: AddImageDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/products/${id}/images`,
+      addImageDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/products/${id}/images`,
+      addImageDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/products/${id}/images`,
+      addImageDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ inventoryControllerList<TData = InventoryItemResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  inventoryControllerList<TData = InventoryItemResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/inventory`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/inventory`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/inventory`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientBodyOptions): Observable<TData>;
+ inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(variantId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  inventoryControllerGetByVariantId<TData = InventoryItemResponseDto>(
+    variantId: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/inventory/${variantId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/inventory/${variantId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/inventory/${variantId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientBodyOptions): Observable<TData>;
+ inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ inventoryControllerAdjust<TData = InventoryItemResponseDto>(variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  inventoryControllerAdjust<TData = InventoryItemResponseDto>(
+    variantId: string,
+    adjustStockDto: AdjustStockDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/inventory/${variantId}`,
+      adjustStockDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/inventory/${variantId}`,
+      adjustStockDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/inventory/${variantId}`,
+      adjustStockDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ categoriesControllerGetTree<TData = CategoryResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  categoriesControllerGetTree<TData = CategoryResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/categories`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/categories`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/categories`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ categoriesControllerCreate<TData = CategoryResponseDto>(createCategoryDto: CreateCategoryDto, options?: HttpClientBodyOptions): Observable<TData>;
+ categoriesControllerCreate<TData = CategoryResponseDto>(createCategoryDto: CreateCategoryDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ categoriesControllerCreate<TData = CategoryResponseDto>(createCategoryDto: CreateCategoryDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  categoriesControllerCreate<TData = CategoryResponseDto>(
+    createCategoryDto: CreateCategoryDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/categories`,
+      createCategoryDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/categories`,
+      createCategoryDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/categories`,
+      createCategoryDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ categoriesControllerGetBySlug<TData = CategoryResponseDto>(slug: string, options?: HttpClientBodyOptions): Observable<TData>;
+ categoriesControllerGetBySlug<TData = CategoryResponseDto>(slug: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ categoriesControllerGetBySlug<TData = CategoryResponseDto>(slug: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  categoriesControllerGetBySlug<TData = CategoryResponseDto>(
+    slug: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/categories/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/categories/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/categories/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ categoriesControllerUpdate<TData = CategoryResponseDto>(id: string,
+    updateCategoryDto: UpdateCategoryDto, options?: HttpClientBodyOptions): Observable<TData>;
+ categoriesControllerUpdate<TData = CategoryResponseDto>(id: string,
+    updateCategoryDto: UpdateCategoryDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ categoriesControllerUpdate<TData = CategoryResponseDto>(id: string,
+    updateCategoryDto: UpdateCategoryDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  categoriesControllerUpdate<TData = CategoryResponseDto>(
+    id: string,
+    updateCategoryDto: UpdateCategoryDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/categories/${id}`,
+      updateCategoryDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/categories/${id}`,
+      updateCategoryDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/categories/${id}`,
+      updateCategoryDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ categoriesControllerDelete<TData = void>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ categoriesControllerDelete<TData = void>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ categoriesControllerDelete<TData = void>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  categoriesControllerDelete<TData = void>(
+    id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.delete<TData>(
+      `/categories/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.delete<TData>(
+      `/categories/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.delete<TData>(
+      `/categories/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ brandsControllerFindAll<TData = BrandResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ brandsControllerFindAll<TData = BrandResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ brandsControllerFindAll<TData = BrandResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  brandsControllerFindAll<TData = BrandResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/brands`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/brands`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/brands`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ brandsControllerCreate<TData = BrandResponseDto>(createBrandDto: CreateBrandDto, options?: HttpClientBodyOptions): Observable<TData>;
+ brandsControllerCreate<TData = BrandResponseDto>(createBrandDto: CreateBrandDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ brandsControllerCreate<TData = BrandResponseDto>(createBrandDto: CreateBrandDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  brandsControllerCreate<TData = BrandResponseDto>(
+    createBrandDto: CreateBrandDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/brands`,
+      createBrandDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/brands`,
+      createBrandDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/brands`,
+      createBrandDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ brandsControllerGetBySlug<TData = BrandResponseDto>(slug: string, options?: HttpClientBodyOptions): Observable<TData>;
+ brandsControllerGetBySlug<TData = BrandResponseDto>(slug: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ brandsControllerGetBySlug<TData = BrandResponseDto>(slug: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  brandsControllerGetBySlug<TData = BrandResponseDto>(
+    slug: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/brands/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/brands/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/brands/${slug}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ brandsControllerUpdate<TData = BrandResponseDto>(id: string,
+    updateBrandDto: UpdateBrandDto, options?: HttpClientBodyOptions): Observable<TData>;
+ brandsControllerUpdate<TData = BrandResponseDto>(id: string,
+    updateBrandDto: UpdateBrandDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ brandsControllerUpdate<TData = BrandResponseDto>(id: string,
+    updateBrandDto: UpdateBrandDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  brandsControllerUpdate<TData = BrandResponseDto>(
+    id: string,
+    updateBrandDto: UpdateBrandDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/brands/${id}`,
+      updateBrandDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/brands/${id}`,
+      updateBrandDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/brands/${id}`,
+      updateBrandDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ brandsControllerDelete<TData = void>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ brandsControllerDelete<TData = void>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ brandsControllerDelete<TData = void>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  brandsControllerDelete<TData = void>(
+    id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.delete<TData>(
+      `/brands/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.delete<TData>(
+      `/brands/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.delete<TData>(
+      `/brands/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ couponsControllerValidate<TData = ValidateCouponResponseDto>(code: string,
+    params: CouponsControllerValidateParams, options?: HttpClientBodyOptions): Observable<TData>;
+ couponsControllerValidate<TData = ValidateCouponResponseDto>(code: string,
+    params: CouponsControllerValidateParams, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ couponsControllerValidate<TData = ValidateCouponResponseDto>(code: string,
+    params: CouponsControllerValidateParams, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  couponsControllerValidate<TData = ValidateCouponResponseDto>(
+    code: string,
+    params: CouponsControllerValidateParams, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams({...params, ...options?.params}, new Set<string>([]));
+
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/coupons/${code}/validate`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+        params: filteredParams,}
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/coupons/${code}/validate`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+        params: filteredParams,}
+    );
+    }
+
+    return this.http.get<TData>(
+      `/coupons/${code}/validate`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+        params: filteredParams,}
+    );
+  }
+
+ ordersControllerList<TData = OrderResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ ordersControllerList<TData = OrderResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ ordersControllerList<TData = OrderResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  ordersControllerList<TData = OrderResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/orders`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/orders`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/orders`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ ordersControllerCreate<TData = OrderResponseDto>(createOrderDto: CreateOrderDto, options?: HttpClientBodyOptions): Observable<TData>;
+ ordersControllerCreate<TData = OrderResponseDto>(createOrderDto: CreateOrderDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ ordersControllerCreate<TData = OrderResponseDto>(createOrderDto: CreateOrderDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  ordersControllerCreate<TData = OrderResponseDto>(
+    createOrderDto: CreateOrderDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/orders`,
+      createOrderDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/orders`,
+      createOrderDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/orders`,
+      createOrderDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ ordersControllerListMine<TData = OrderResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ ordersControllerListMine<TData = OrderResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ ordersControllerListMine<TData = OrderResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  ordersControllerListMine<TData = OrderResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/orders/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/orders/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/orders/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ ordersControllerGetById<TData = OrderResponseDto>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ ordersControllerGetById<TData = OrderResponseDto>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ ordersControllerGetById<TData = OrderResponseDto>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  ordersControllerGetById<TData = OrderResponseDto>(
+    id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/orders/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/orders/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/orders/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ ordersControllerUpdateStatus<TData = OrderResponseDto>(id: string,
+    updateOrderStatusDto: UpdateOrderStatusDto, options?: HttpClientBodyOptions): Observable<TData>;
+ ordersControllerUpdateStatus<TData = OrderResponseDto>(id: string,
+    updateOrderStatusDto: UpdateOrderStatusDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ ordersControllerUpdateStatus<TData = OrderResponseDto>(id: string,
+    updateOrderStatusDto: UpdateOrderStatusDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  ordersControllerUpdateStatus<TData = OrderResponseDto>(
+    id: string,
+    updateOrderStatusDto: UpdateOrderStatusDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/orders/${id}/status`,
+      updateOrderStatusDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/orders/${id}/status`,
+      updateOrderStatusDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/orders/${id}/status`,
+      updateOrderStatusDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ reviewsControllerListForProduct<TData = ReviewResponseDto[]>(productId: string, options?: HttpClientBodyOptions): Observable<TData>;
+ reviewsControllerListForProduct<TData = ReviewResponseDto[]>(productId: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ reviewsControllerListForProduct<TData = ReviewResponseDto[]>(productId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  reviewsControllerListForProduct<TData = ReviewResponseDto[]>(
+    productId: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/reviews/product/${productId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/reviews/product/${productId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/reviews/product/${productId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ reviewsControllerCreate<TData = ReviewResponseDto>(createReviewDto: CreateReviewDto, options?: HttpClientBodyOptions): Observable<TData>;
+ reviewsControllerCreate<TData = ReviewResponseDto>(createReviewDto: CreateReviewDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ reviewsControllerCreate<TData = ReviewResponseDto>(createReviewDto: CreateReviewDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  reviewsControllerCreate<TData = ReviewResponseDto>(
+    createReviewDto: CreateReviewDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/reviews`,
+      createReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/reviews`,
+      createReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/reviews`,
+      createReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ reviewsControllerListForModeration<TData = ReviewResponseDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ reviewsControllerListForModeration<TData = ReviewResponseDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ reviewsControllerListForModeration<TData = ReviewResponseDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  reviewsControllerListForModeration<TData = ReviewResponseDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/reviews`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/reviews`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/reviews`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ reviewsControllerModerate<TData = ReviewResponseDto>(id: string,
+    moderateReviewDto: ModerateReviewDto, options?: HttpClientBodyOptions): Observable<TData>;
+ reviewsControllerModerate<TData = ReviewResponseDto>(id: string,
+    moderateReviewDto: ModerateReviewDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ reviewsControllerModerate<TData = ReviewResponseDto>(id: string,
+    moderateReviewDto: ModerateReviewDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  reviewsControllerModerate<TData = ReviewResponseDto>(
+    id: string,
+    moderateReviewDto: ModerateReviewDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.patch<TData>(
+      `/reviews/${id}/moderate`,
+      moderateReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.patch<TData>(
+      `/reviews/${id}/moderate`,
+      moderateReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.patch<TData>(
+      `/reviews/${id}/moderate`,
+      moderateReviewDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ paymentsControllerPay<TData = PaymentResponseDto>(orderId: string, options?: HttpClientBodyOptions): Observable<TData>;
+ paymentsControllerPay<TData = PaymentResponseDto>(orderId: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ paymentsControllerPay<TData = PaymentResponseDto>(orderId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  paymentsControllerPay<TData = PaymentResponseDto>(
+    orderId: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/payments/orders/${orderId}/pay`,
+      undefined,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/payments/orders/${orderId}/pay`,
+      undefined,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/payments/orders/${orderId}/pay`,
+      undefined,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ paymentsControllerListForOrder<TData = PaymentResponseDto[]>(orderId: string, options?: HttpClientBodyOptions): Observable<TData>;
+ paymentsControllerListForOrder<TData = PaymentResponseDto[]>(orderId: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ paymentsControllerListForOrder<TData = PaymentResponseDto[]>(orderId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  paymentsControllerListForOrder<TData = PaymentResponseDto[]>(
+    orderId: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/payments/orders/${orderId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/payments/orders/${orderId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/payments/orders/${orderId}`,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }

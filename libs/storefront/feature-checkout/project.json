@@ -1,0 +1,20 @@
+{
+  "name": "storefront-feature-checkout",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/storefront/feature-checkout/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:storefront", "type:feature"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "coverage/libs/storefront/feature-checkout"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
