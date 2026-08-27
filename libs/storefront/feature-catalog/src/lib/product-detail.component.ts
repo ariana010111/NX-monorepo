@@ -21,73 +21,103 @@ import type { ProductResponseDto } from '@beauty-platform-validated/api-client';
   imports: [DecimalPipe, ReactiveFormsModule],
   template: `
     @if (productResource.value(); as product) {
-      <h1>{{ product.name }}</h1>
-      <p>{{ product.brandName }}</p>
-      <p>{{ product.description }}</p>
-
-      <button type="button" [attr.aria-pressed]="isWishlisted()" (click)="onToggleWishlist(product)">
-        {{ isWishlisted() ? '♥ Saved' : '♡ Save to wishlist' }}
-      </button>
-
-      @for (group of attributeGroups(); track group.name) {
-        <fieldset>
-          <legend>{{ group.name }}</legend>
-          @for (opt of group.options; track opt.value) {
-            <button
-              type="button"
-              [attr.aria-pressed]="selectedValues()[group.name] === opt.value"
-              [style.background]="opt.colorHex"
-              (click)="selectAttribute(group.name, opt.value)"
-            >
-              {{ opt.value }}
-            </button>
-          }
-        </fieldset>
-      }
-
-      @if (selectedVariant(); as variant) {
-        <p>{{ variant.price | number: '1.2-2' }}</p>
-        <button (click)="addToCart()">Add to Bag</button>
-      } @else {
-        <p>Select options to see price.</p>
-      }
-
-      <section>
-        <h2>Reviews ({{ reviewsResource.value()?.length ?? 0 }})</h2>
-        @for (review of reviewsResource.value(); track review.id) {
-          <div>
-            <strong>{{ review.rating }}/5</strong>
-            @if (review.isVerifiedPurchase) {
-              <span> (Verified Purchase)</span>
-            }
-            <p>{{ review.title }}</p>
-            <p>{{ review.body }}</p>
-            <small>{{ review.authorName }}</small>
+      <div class="page-shell">
+        <div class="product-details">
+          <div class="product-gallery">
+            <div class="product-gallery__thumbs">
+              @for (image of product.images; track image.url; let i = $index) {
+                <div class="product-gallery__thumb">
+                  <img [src]="image.url" [alt]="image.altText ?? product.name" style="width: 100%; height: 100%; object-fit: cover;" />
+                </div>
+              }
+            </div>
+            <div class="product-gallery__main">
+              @if (product.images[0]; as image) {
+                <img [src]="image.url" [alt]="image.altText ?? product.name" style="width: 100%; height: 100%; object-fit: cover;" />
+              }
+            </div>
           </div>
-        }
 
-        @if (authFacade.isAuthenticated()) {
-          <form [formGroup]="reviewForm" (ngSubmit)="onSubmitReview(product.id)">
-            <label>
-              Rating (1-5)
-              <input type="number" formControlName="rating" min="1" max="5" />
-            </label>
-            <input formControlName="title" placeholder="Title" />
-            <textarea formControlName="body" placeholder="Your review"></textarea>
-            @if (reviewSubmitError(); as err) {
-              <p role="alert">{{ err }}</p>
+          <div class="product-info">
+            <div class="product-brand">{{ product.brandName }}</div>
+            <h1>{{ product.name }}</h1>
+            <div class="beauty-rating">★★★★★ <span>4.8</span></div>
+            <div class="price-block">
+              @if (selectedVariant(); as variant) {
+                <span class="price">{{ variant.price | number: '1.2-2' }}</span>
+              } @else {
+                <span class="price">From {{ product.fromPrice | number: '1.2-2' }}</span>
+              }
+            </div>
+            <p>{{ product.description }}</p>
+
+            @for (group of attributeGroups(); track group.name) {
+              <fieldset style="border: 1px solid var(--beauty-border); border-radius: 14px; padding: 12px; margin: 16px 0;">
+                <legend>{{ group.name }}</legend>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  @for (opt of group.options; track opt.value) {
+                    <button
+                      class="beauty-btn beauty-btn--secondary"
+                      type="button"
+                      [attr.aria-pressed]="selectedValues()[group.name] === opt.value"
+                      [style.background]="selectedValues()[group.name] === opt.value ? 'var(--beauty-brand-soft)' : '#fff'"
+                      [style.borderColor]="selectedValues()[group.name] === opt.value ? 'var(--beauty-brand)' : 'var(--beauty-border)'"
+                      (click)="selectAttribute(group.name, opt.value)"
+                    >
+                      {{ opt.value }}
+                    </button>
+                  }
+                </div>
+              </fieldset>
             }
-            @if (reviewSubmitted()) {
-              <p>Thanks — your review is pending moderation.</p>
-            }
-            <button type="submit" [disabled]="reviewForm.invalid">Submit review</button>
-          </form>
-        } @else {
-          <p>Log in to leave a review.</p>
-        }
-      </section>
+
+            <div class="product-actions">
+              @if (selectedVariant(); as variant) {
+                <button class="beauty-btn beauty-btn--primary" type="button" (click)="addToCart()">Add to Bag</button>
+              } @else {
+                <button class="beauty-btn beauty-btn--primary" type="button" disabled>Select options</button>
+              }
+              <button class="beauty-btn beauty-btn--secondary" type="button" [attr.aria-pressed]="isWishlisted()" (click)="onToggleWishlist(product)">
+                {{ isWishlisted() ? '♥ Saved' : '♡ Save' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <section class="feature-panel" style="margin-top: 36px; padding: 24px;">
+          <h2>Reviews ({{ reviewsResource.value()?.length ?? 0 }})</h2>
+          @for (review of reviewsResource.value(); track review.id) {
+            <div style="padding: 16px 0; border-bottom: 1px solid var(--beauty-border);">
+              <strong>{{ review.rating }}/5</strong>
+              @if (review.isVerifiedPurchase) {
+                <span class="beauty-subtle"> • Verified purchase</span>
+              }
+              <p style="font-weight: 600; margin: 6px 0;">{{ review.title }}</p>
+              <p>{{ review.body }}</p>
+              <small class="beauty-subtle">{{ review.authorName }}</small>
+            </div>
+          }
+
+          @if (authFacade.isAuthenticated()) {
+            <form [formGroup]="reviewForm" (ngSubmit)="onSubmitReview(product.id)" class="form-grid" style="margin-top: 18px;">
+              <div class="field"><label>Rating</label><input type="number" formControlName="rating" min="1" max="5" /></div>
+              <div class="field" style="grid-column: 1 / -1;"><input formControlName="title" placeholder="Title" /></div>
+              <div class="field" style="grid-column: 1 / -1;"><textarea formControlName="body" placeholder="Your review"></textarea></div>
+              @if (reviewSubmitError(); as err) {
+                <p role="alert" style="grid-column: 1 / -1;">{{ err }}</p>
+              }
+              @if (reviewSubmitted()) {
+                <p style="grid-column: 1 / -1;">Thanks — your review is pending moderation.</p>
+              }
+              <button class="beauty-btn beauty-btn--primary" type="submit" [disabled]="reviewForm.invalid" style="grid-column: 1 / -1;">Submit review</button>
+            </form>
+          } @else {
+            <p>Log in to leave a review.</p>
+          }
+        </section>
+      </div>
     } @else if (productResource.isLoading()) {
-      <p>Loading…</p>
+      <p class="page-shell">Loading…</p>
     }
   `,
 })

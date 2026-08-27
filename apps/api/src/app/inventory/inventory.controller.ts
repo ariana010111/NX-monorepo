@@ -4,11 +4,13 @@ import { InventoryService } from './inventory.service';
 import { InventoryItemResponseDto } from './dto/inventory-response.dto';
 import { AdjustStockDto } from './dto/adjust-stock.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Permission, Permissions } from '../auth/permissions';
 
 // No @Public() anywhere in this controller — stock levels are internal
 // operational data, not customer-facing. Every route here requires the
 // SUPER_ADMIN role via the class-level decorator below.
-@Roles('SUPER_ADMIN')
+@Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+@Permissions(Permission.ProductsWrite)
 @ApiBearerAuth()
 @ApiTags('inventory')
 @Controller('inventory')

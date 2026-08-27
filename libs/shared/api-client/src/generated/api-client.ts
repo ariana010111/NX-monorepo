@@ -37,6 +37,7 @@ export interface UserResponseDto {
   firstName: string;
   lastName: string;
   roles: string[];
+  permissions: string[];
 }
 
 export interface AuthResponseDto {
@@ -61,6 +62,24 @@ export interface ForgotPasswordDto {
 export interface ResetPasswordDto {
   token: string;
   newPassword: string;
+}
+
+export type CreateManagedUserDtoRole = typeof CreateManagedUserDtoRole[keyof typeof CreateManagedUserDtoRole];
+
+
+export const CreateManagedUserDtoRole = {
+  ADMIN: 'ADMIN',
+  STAFF: 'STAFF',
+  CUSTOMER: 'CUSTOMER',
+} as const;
+
+export interface CreateManagedUserDto {
+  email: string;
+  /** @minLength 8 */
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: CreateManagedUserDtoRole;
 }
 
 export interface ProductImageDto {
@@ -747,6 +766,40 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/users`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ usersControllerCreate<TData = void>(createManagedUserDto: CreateManagedUserDto, options?: HttpClientBodyOptions): Observable<TData>;
+ usersControllerCreate<TData = void>(createManagedUserDto: CreateManagedUserDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ usersControllerCreate<TData = void>(createManagedUserDto: CreateManagedUserDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  usersControllerCreate<TData = void>(
+    createManagedUserDto: CreateManagedUserDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/users`,
+      createManagedUserDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/users`,
+      createManagedUserDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/users`,
+      createManagedUserDto,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }

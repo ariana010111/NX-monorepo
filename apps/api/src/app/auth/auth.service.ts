@@ -107,12 +107,12 @@ export class AuthService {
   }
 
   private async buildAuthResponse(user: UserRecord) {
-    const accessToken = this.jwtService.sign({ sub: user.id, email: user.email, roles: user.roles });
+    const accessToken = this.jwtService.sign({ sub: user.id, email: user.email, roles: user.roles, permissions: user.permissions ?? [] });
     const refreshToken = await this.refreshTokensRepo.create(user.id);
     return {
       accessToken,
       refreshToken,
-      user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, roles: user.roles },
+      user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, roles: user.roles, permissions: user.permissions ?? [] },
     };
   }
 }

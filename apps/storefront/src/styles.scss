@@ -1,1 +1,369 @@
-/* You can add global styles to this file, and also import other style files */
+@use '../../../libs/shared/ui/src/lib/shared-ui/design-system.scss';
+
+:root {
+  color-scheme: light;
+}
+
+html, body {
+  min-height: 100%;
+}
+
+body {
+  background: linear-gradient(180deg, #ffffff 0%, #f8f8f8 100%);
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.storefront-shell {
+  background: var(--beauty-bg);
+}
+
+.storefront-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--beauty-border);
+}
+
+.storefront-header__inner,
+.storefront-nav,
+.storefront-header__actions,
+.storefront-subnav,
+.footer-inner,
+.hero-card,
+.catalog-toolbar,
+.product-details,
+.checkout-layout,
+.feature-panel,
+.auth-panel,
+.dashboard-grid,
+.admin-topbar,
+.admin-layout,
+.sidebar-nav,
+.admin-card-row,
+.summary-grid {
+  display: flex;
+}
+
+.storefront-header__inner {
+  width: min(var(--beauty-container), calc(100% - 32px));
+  margin: 0 auto;
+  min-height: 78px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--beauty-text);
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--beauty-brand) 0%, #ff8a9a 100%);
+  color: white;
+  font-size: 16px;
+  box-shadow: var(--beauty-shadow-soft);
+}
+
+.storefront-search {
+  flex: 1;
+  max-width: 660px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--beauty-border);
+  border-radius: 999px;
+  background: var(--beauty-bg-alt);
+  min-height: 48px;
+  padding: 0 18px;
+  color: var(--beauty-text-secondary);
+}
+
+.storefront-search input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--beauty-text);
+  font-size: 14px;
+}
+
+.storefront-search input:focus {
+  outline: none;
+}
+
+.storefront-header__actions {
+  align-items: center;
+  gap: 18px;
+}
+
+.storefront-nav {
+  align-items: center;
+  gap: 20px;
+  color: var(--beauty-text-secondary);
+  font-size: 14px;
+}
+
+.storefront-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  min-height: 40px;
+  padding: 0 16px;
+  background: var(--beauty-brand);
+  color: #fff;
+  border: 0;
+  font-weight: 600;
+}
+
+.storefront-subnav {
+  width: min(var(--beauty-container), calc(100% - 32px));
+  margin: 0 auto;
+  min-height: 54px;
+  align-items: center;
+  gap: 20px;
+  overflow: auto;
+  color: var(--beauty-text-secondary);
+  border-bottom: 1px solid var(--beauty-border);
+}
+
+.storefront-subnav a {
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 16px 0;
+  border-bottom: 2px solid transparent;
+}
+
+.storefront-subnav a.active,
+.storefront-subnav a:hover {
+  color: var(--beauty-text);
+  border-color: var(--beauty-brand);
+}
+
+.page-shell {
+  width: min(var(--beauty-container), calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 64px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 24px;
+  padding: 32px 0 8px;
+}
+
+.hero-card {
+  background: linear-gradient(135deg, #fff9f9, #fff);
+  border: 1px solid var(--beauty-border);
+  border-radius: var(--beauty-radius-xl);
+  overflow: hidden;
+  min-height: 420px;
+}
+
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 40px;
+}
+
+.hero-copy h1 {
+  margin: 0 0 16px;
+  font-size: clamp(2.4rem, 4vw, 4rem);
+  line-height: 0.96;
+  letter-spacing: -0.06em;
+}
+
+.hero-copy p {
+  margin: 0 0 28px;
+  max-width: 580px;
+  font-size: 1.06rem;
+  color: var(--beauty-text-secondary);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hero-card__image {
+  min-height: 420px;
+  background: linear-gradient(135deg, #f8e3e8, #f5d1d4 40%, #f0f0f0 100%);
+  position: relative;
+}
+
+.hero-card__image::before {
+  content: "";
+  position: absolute;
+  inset: 14% 12% 24% 12%;
+  border-radius: 30px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.2));
+  box-shadow: var(--beauty-shadow-panel);
+}
+
+.catalog-toolbar {
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px 0 24px;
+}
+
+.product-details {
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.product-gallery {
+  flex: 1.2;
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 16px;
+}
+
+.product-gallery__thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.product-gallery__thumb {
+  height: 86px;
+  border-radius: 14px;
+  border: 1px solid var(--beauty-border);
+  background: var(--beauty-bg-soft);
+  overflow: hidden;
+}
+
+.product-gallery__main {
+  min-height: 520px;
+  border: 1px solid var(--beauty-border);
+  border-radius: 22px;
+  background: var(--beauty-bg-soft);
+  overflow: hidden;
+}
+
+.product-info {
+  flex: 0.8;
+  padding-top: 8px;
+}
+
+.product-brand {
+  color: var(--beauty-text-secondary);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.product-info h1 {
+  margin: 0 0 10px;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.05em;
+}
+
+.price-block {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.price-block .price {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.product-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.feature-panel {
+  background: var(--beauty-bg);
+  border: 1px solid var(--beauty-border);
+  border-radius: var(--beauty-radius-lg);
+  padding: 20px 18px;
+}
+
+.footer {
+  border-top: 1px solid var(--beauty-border);
+  background: var(--beauty-bg);
+  margin-top: 36px;
+}
+
+.footer-inner {
+  width: min(var(--beauty-container), calc(100% - 32px));
+  margin: 0 auto;
+  justify-content: space-between;
+  padding: 20px 0 32px;
+  color: var(--beauty-text-secondary);
+  font-size: 14px;
+}
+
+@media (max-width: 960px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .product-details {
+    flex-direction: column;
+  }
+
+  .product-gallery {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .product-gallery__thumbs {
+    flex-direction: row;
+    overflow: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .storefront-header__inner,
+  .storefront-subnav,
+  .catalog-toolbar {
+    width: min(var(--beauty-container), calc(100% - 20px));
+  }
+
+  .storefront-header__inner {
+    flex-wrap: wrap;
+    padding: 12px 0;
+  }
+
+  .storefront-nav {
+    display: none;
+  }
+
+  .storefront-search {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .hero-copy {
+    padding: 28px 20px;
+  }
+}

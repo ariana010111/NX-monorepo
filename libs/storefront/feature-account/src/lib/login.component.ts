@@ -8,17 +8,28 @@ import { AuthFacade } from '@beauty-platform-validated/storefront-data-access';
   standalone: true,
   imports: [ReactiveFormsModule],
   template: `
-    <h1>Log in</h1>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <input type="email" formControlName="email" placeholder="Email" />
-      <input type="password" formControlName="password" placeholder="Password" />
-      @if (error(); as message) {
-        <p role="alert">{{ message }}</p>
-      }
-      <button type="submit" [disabled]="form.invalid || isSubmitting()">
-        {{ isSubmitting() ? 'Logging in…' : 'Log in' }}
-      </button>
-    </form>
+    <div class="page-shell">
+      <div class="auth-panel" style="max-width: 480px; margin: 56px auto; padding: 32px;">
+        <div class="beauty-subtle">Welcome back</div>
+        <h1>Log in</h1>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-grid" style="grid-template-columns: 1fr;">
+          <div class="field">
+            <label>Email</label>
+            <input type="email" formControlName="email" placeholder="Email" />
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" formControlName="password" placeholder="Password" />
+          </div>
+          @if (error(); as message) {
+            <p role="alert">{{ message }}</p>
+          }
+          <button class="beauty-btn beauty-btn--primary" type="submit" [disabled]="form.invalid || isSubmitting()">
+            {{ isSubmitting() ? 'Logging in…' : 'Log in' }}
+          </button>
+        </form>
+      </div>
+    </div>
   `,
 })
 export class LoginComponent {

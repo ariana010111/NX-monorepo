@@ -29,7 +29,7 @@ export class AuthFacade {
   readonly token = this._token.asReadonly();
   readonly user = this._user.asReadonly();
   readonly isAuthenticated = computed(() => this._token() !== null);
-  readonly isAdmin = computed(() => this._user()?.roles.includes('SUPER_ADMIN') ?? false);
+  readonly isAdmin = computed(() => this._user()?.roles.some((role) => ['SUPERADMIN', 'SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(role)) ?? false);
 
   async login(email: string, password: string) {
     const response = await new Promise<AuthResult>((resolve, reject) =>

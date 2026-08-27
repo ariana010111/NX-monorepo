@@ -226,6 +226,33 @@
         "tags": [
           "users"
         ]
+      },
+      "post": {
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateManagedUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "users"
+        ]
       }
     },
     "/products": {
@@ -1440,6 +1467,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -1447,7 +1480,8 @@
           "email",
           "firstName",
           "lastName",
-          "roles"
+          "roles",
+          "permissions"
         ]
       },
       "AuthResponseDto": {
@@ -1519,6 +1553,39 @@
         "required": [
           "token",
           "newPassword"
+        ]
+      },
+      "CreateManagedUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "STAFF",
+              "CUSTOMER"
+            ]
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "firstName",
+          "lastName",
+          "role"
         ]
       },
       "ProductImageDto": {

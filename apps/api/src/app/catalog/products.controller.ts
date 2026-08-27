@@ -8,6 +8,7 @@ import { AddImageDto } from './dto/add-image.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Permission, Permissions } from '../auth/permissions';
 
 @ApiTags('products')
 @Controller('products')
@@ -32,7 +33,8 @@ export class ProductsController {
 
   // Admin-only lookup by internal id (customer-facing lookups go through
   // getBySlug below). Requires auth — no @Public() here.
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.ProductsRead)
   @ApiBearerAuth()
   @Get('by-id/:id')
   @ApiOkResponse({ type: ProductResponseDto })
@@ -47,7 +49,8 @@ export class ProductsController {
     return this.productsService.getBySlug(slug);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.ProductsWrite)
   @ApiBearerAuth()
   @Post()
   @ApiCreatedResponse({ type: ProductResponseDto })
@@ -55,7 +58,8 @@ export class ProductsController {
     return this.productsService.create(dto);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.ProductsWrite)
   @ApiBearerAuth()
   @Patch(':id')
   @ApiOkResponse({ type: ProductResponseDto })
@@ -63,7 +67,8 @@ export class ProductsController {
     return this.productsService.update(id, dto);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.ProductsWrite)
   @ApiBearerAuth()
   @Delete(':id')
   @HttpCode(204)
@@ -76,7 +81,8 @@ export class ProductsController {
   // product with no variants has nothing to select or add to cart, and
   // reserveForOrder() has no inventory row to find. This creates both the
   // variant AND its inventory record together (see ProductsService.addVariant).
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.ProductsWrite)
   @ApiBearerAuth()
   @Post(':id/variants')
   @ApiCreatedResponse({ type: ProductResponseDto })
@@ -86,7 +92,7 @@ export class ProductsController {
 
   // URL-based, not a file upload — no object storage wired into this
   // sandbox (see AddImageDto for why).
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
   @ApiBearerAuth()
   @Post(':id/images')
   @ApiCreatedResponse({ type: ProductResponseDto })

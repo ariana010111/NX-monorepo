@@ -31,7 +31,7 @@ export class ReviewsController {
     return this.reviewsService.create(dto, user);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
   @ApiBearerAuth()
   @Get()
   @ApiOkResponse({ type: ReviewResponseDto, isArray: true })
@@ -39,7 +39,7 @@ export class ReviewsController {
     return this.reviewsService.listAllForModeration();
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
   @ApiBearerAuth()
   @Patch(':id/moderate')
   @ApiOkResponse({ type: ReviewResponseDto })

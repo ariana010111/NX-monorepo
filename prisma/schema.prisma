@@ -1,8 +1,3 @@
-// =====================================================================
-// Beauty & Cosmetics E-Commerce Platform — Prisma Schema
-// Single-vendor MVP, multi-vendor-ready architecture
-// =====================================================================
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,236 +6,10 @@ datasource db {
   provider = "mysql"
 }
 
-// =====================================================================
-// ENUMS
-// =====================================================================
-
-enum SellerType {
-  PLATFORM // the single MVP "store" seller — seeded once, never customer-visible
-  VENDOR   // future marketplace sellers
-}
-
-enum SellerStatus {
-  ACTIVE
-  SUSPENDED
-  PENDING
-}
-
-enum ProductStatus {
-  DRAFT
-  ACTIVE
-  ARCHIVED
-}
-
-enum AttributeInputType {
-  SELECT // dropdown, e.g. Size
-  COLOR  // swatch picker, e.g. Shade
-  TEXT
-  NUMBER
-}
-
-enum InventoryTransactionType {
-  RESTOCK
-  SALE
-  RESERVATION
-  RELEASE
-  ADJUSTMENT
-  RETURN
-}
-
-enum OrderStatus {
-  PENDING_PAYMENT
-  PAID
-  PROCESSING
-  PARTIALLY_SHIPPED
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
-}
-
-enum OrderItemStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  RETURNED
-  REFUNDED
-}
-
-enum PaymentProvider {
-  STRIPE
-}
-
-enum PaymentStatus {
-  PENDING
-  SUCCEEDED
-  FAILED
-  REFUNDED
-  PARTIALLY_REFUNDED
-}
-
-enum CouponType {
-  PERCENTAGE
-  FIXED_AMOUNT
-}
-
-enum ReviewStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-// =====================================================================
-// SELLER & MULTI-VENDOR FOUNDATION
-// (MVP: exactly one Seller row exists, type = PLATFORM, seeded via migration)
-// =====================================================================
-
-model Seller {
-  id             String       @id @default(cuid())
-  name           String
-  slug           String       @unique
-  type           SellerType   @default(PLATFORM)
-  status         SellerStatus @default(ACTIVE)
-  email          String?
-  commissionRate Decimal?     @db.Decimal(5, 2) // % — unused while type = PLATFORM
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-
-  warehouses      Warehouse[]
-  products        Product[]
-  productVariants ProductVariant[]
-  inventoryItems  InventoryItem[]
-  cartItems       CartItem[]
-  orderItems      OrderItem[]
-
-  @@index([type, status])
-}
-
-model Warehouse {
-  id         String   @id @default(cuid())
-  sellerId   String
-  seller     Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  name       String
-  code       String
-  line1      String
-  line2      String?
-  city       String
-  state      String?
-  postalCode String?
-  country    String
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  inventoryItems InventoryItem[]
-
-  @@unique([sellerId, code])
-  @@index([sellerId])
-}
-
-// =====================================================================
-// USERS, ROLES & PERMISSIONS (RBAC — not hardcoded to admin/customer)
-// =====================================================================
-
-model Role {
-  id          String   @id @default(cuid())
-  name        String   @unique // "SUPER_ADMIN", "CATALOG_MANAGER", "ORDER_MANAGER", "CUSTOMER", ...
-  description String?
-  isSystem    Boolean  @default(false) // prevents deletion of built-in roles
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  permissions RolePermission[]
-  users       UserRole[]
-}
-
-model Permission {
-  id          String   @id @default(cuid())
-  name        String   @unique // "product:create", "order:refund", "coupon:manage", ...
-  description String?
-  createdAt   DateTime @default(now())
-
-  roles RolePermission[]
-}
-
-model RolePermission {
-  roleId       String
-  permissionId String
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-
-  @@id([roleId, permissionId])
-  @@index([permissionId])
-}
-
-model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  passwordHash    String
-  firstName       String
-  lastName        String
-  phone           String?
-  isActive        Boolean   @default(true)
-  emailVerifiedAt DateTime?
-  lastLoginAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  deletedAt       DateTime?
-
-  roles        UserRole[]
-  addresses    Address[]
-  carts        Cart[]
-  wishlist     Wishlist?
-  orders       Order[]
-  reviews      Review[]
-  couponUsages CouponUsage[]
-  refreshTokens RefreshToken[]
-  passwordResetTokens PasswordResetToken[]
-
-  @@index([deletedAt])
-}
-
-model UserRole {
-  userId String
-  roleId String
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
-  @@id([userId, roleId])
-  @@index([roleId])
-}
-
-model RefreshToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime @default(now())
-
-  @@index([userId, expiresAt])
-}
-
-model PasswordResetToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime @default(now())
-
-  @@index([userId, expiresAt])
-}
-
-model Address {
-  id                String    @id @default(cuid())
+model address {
+  id                String    @id
   userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  label             String? // "Home", "Work"
+  label             String?
   fullName          String
   phone             String
   line1             String
@@ -252,525 +21,691 @@ model Address {
   isDefaultShipping Boolean   @default(false)
   isDefaultBilling  Boolean   @default(false)
   createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  updatedAt         DateTime
   deletedAt         DateTime?
+  user              user      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Address_userId_fkey")
 
-  @@index([userId])
+  @@index([userId], map: "Address_userId_idx")
 }
 
-// =====================================================================
-// CATALOG: CATEGORY, BRAND, PRODUCT, VARIANTS, ATTRIBUTES (EAV)
-// =====================================================================
-
-model Category {
-  id             String     @id @default(cuid())
-  parentId       String?
-  parent         Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
-  children       Category[] @relation("CategoryTree")
-  name           String
-  slug           String     @unique
-  description    String?    @db.Text
-  imageUrl       String?
-  isActive       Boolean    @default(true)
-  sortOrder      Int        @default(0)
-  seoTitle       String?
-  seoDescription String?    @db.Text
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-
-  products ProductCategory[]
-  coupons  CouponCategory[]
-
-  @@index([parentId])
+model attribute {
+  id             String              @id
+  name           String              @unique(map: "Attribute_name_key")
+  slug           String              @unique(map: "Attribute_slug_key")
+  inputType      attribute_inputType @default(SELECT)
+  createdAt      DateTime            @default(now())
+  attributevalue attributevalue[]
 }
 
-model Brand {
-  id             String   @id @default(cuid())
+model attributevalue {
+  id                    String                  @id
+  attributeId           String
+  value                 String
+  slug                  String
+  colorHex              String?
+  sortOrder             Int                     @default(0)
+  createdAt             DateTime                @default(now())
+  attribute             attribute               @relation(fields: [attributeId], references: [id], onDelete: Cascade, map: "AttributeValue_attributeId_fkey")
+  variantattributevalue variantattributevalue[]
+
+  @@unique([attributeId, value], map: "AttributeValue_attributeId_value_key")
+  @@index([attributeId], map: "AttributeValue_attributeId_idx")
+}
+
+model brand {
+  id             String    @id
   name           String
-  slug           String   @unique
-  description    String?  @db.Text
+  slug           String    @unique(map: "Brand_slug_key")
+  description    String?   @db.Text
   logoUrl        String?
-  isActive       Boolean  @default(true)
-  seoTitle       String?
-  seoDescription String?  @db.Text
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  products Product[]
-}
-
-model Product {
-  id               String        @id @default(cuid())
-  sellerId         String
-  seller           Seller        @relation(fields: [sellerId], references: [id], onDelete: Restrict)
-  brandId          String?
-  brand            Brand?        @relation(fields: [brandId], references: [id], onDelete: SetNull)
-  name             String
-  slug             String        @unique
-  description      String?       @db.Text
-  shortDescription String?
-  status           ProductStatus @default(DRAFT)
-  seoTitle         String?
-  seoDescription   String?       @db.Text
-  seoKeywords      String?
-  publishedAt      DateTime?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  deletedAt        DateTime?
-
-  categories     ProductCategory[]
-  variants       ProductVariant[]
-  images         ProductImage[]
-  ingredients    ProductIngredient[]
-  tags           ProductTag[]
-  reviews        Review[]
-  wishlistItems  WishlistItem[]
-  couponProducts CouponProduct[]
-  orderItems     OrderItem[]
-
-  @@index([sellerId, status])
-  @@index([brandId])
-  @@index([status])
-}
-
-model ProductCategory {
-  productId  String
-  categoryId String
-  isPrimary  Boolean  @default(false)
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@id([productId, categoryId])
-  @@index([categoryId])
-}
-
-/// A purchasable SKU: one specific shade/size combination of a Product.
-model ProductVariant {
-  id             String    @id @default(cuid())
-  productId      String
-  product        Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  sellerId       String // denormalized from product.sellerId — enables per-seller SKU uniqueness & fast scoped queries
-  seller         Seller    @relation(fields: [sellerId], references: [id], onDelete: Restrict)
-  sku            String
-  barcode        String?
-  price          Decimal   @db.Decimal(12, 2)
-  compareAtPrice Decimal?  @db.Decimal(12, 2)
-  costPrice      Decimal?  @db.Decimal(12, 2)
-  weightGrams    Int?
   isActive       Boolean   @default(true)
-  sortOrder      Int       @default(0)
+  seoTitle       String?
+  seoDescription String?   @db.Text
   createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  deletedAt      DateTime?
-
-  attributeValues VariantAttributeValue[]
-  images          ProductImage[]
-  inventoryItems  InventoryItem[]
-  cartItems       CartItem[]
-  wishlistItems   WishlistItem[]
-  orderItems      OrderItem[]
-
-  @@unique([sellerId, sku])
-  @@index([productId])
+  updatedAt      DateTime
+  product        product[]
 }
 
-/// Global, reusable characteristic definitions: "Shade", "Size", "Skin Type", "Volume"
-model Attribute {
-  id        String             @id @default(cuid())
-  name      String             @unique
-  slug      String             @unique
-  inputType AttributeInputType @default(SELECT)
-  createdAt DateTime           @default(now())
+model cart {
+  id        String     @id
+  userId    String?
+  sessionId String?
+  currency  String     @default("USD")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+  expiresAt DateTime?
+  user      user?      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Cart_userId_fkey")
+  cartitem  cartitem[]
 
-  values AttributeValue[]
+  @@index([sessionId], map: "Cart_sessionId_idx")
+  @@index([userId], map: "Cart_userId_idx")
 }
 
-/// Specific values for an Attribute: Shade → "Rosy Pink", Size → "30ml"
-model AttributeValue {
-  id          String    @id @default(cuid())
-  attributeId String
-  attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
-  value       String
-  slug        String
-  colorHex    String? // populated when attribute.inputType = COLOR, drives shade swatches
-  sortOrder   Int       @default(0)
-  createdAt   DateTime  @default(now())
+model cartitem {
+  id             String         @id
+  cartId         String
+  variantId      String
+  sellerId       String
+  quantity       Int
+  priceAtAdd     Decimal        @db.Decimal(12, 2)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime
+  cart           cart           @relation(fields: [cartId], references: [id], onDelete: Cascade, map: "CartItem_cartId_fkey")
+  seller         seller         @relation(fields: [sellerId], references: [id], map: "CartItem_sellerId_fkey")
+  productvariant productvariant @relation(fields: [variantId], references: [id], onDelete: Cascade, map: "CartItem_variantId_fkey")
 
-  variants VariantAttributeValue[]
-
-  @@unique([attributeId, value])
-  @@index([attributeId])
+  @@unique([cartId, variantId], map: "CartItem_cartId_variantId_key")
+  @@index([sellerId], map: "CartItem_sellerId_idx")
+  @@index([variantId], map: "CartItem_variantId_fkey")
 }
 
-/// Links a variant to the specific attribute values that define it (Shade=Rosy Pink + Size=30ml)
-model VariantAttributeValue {
-  variantId        String
-  attributeValueId String
-  variant          ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  attributeValue   AttributeValue @relation(fields: [attributeValueId], references: [id], onDelete: Restrict)
+model category {
+  id              String            @id
+  parentId        String?
+  name            String
+  slug            String            @unique(map: "Category_slug_key")
+  description     String?           @db.Text
+  imageUrl        String?
+  isActive        Boolean           @default(true)
+  sortOrder       Int               @default(0)
+  seoTitle        String?
+  seoDescription  String?           @db.Text
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  category        category?         @relation("categoryTocategory", fields: [parentId], references: [id], map: "Category_parentId_fkey")
+  other_category  category[]        @relation("categoryTocategory")
+  couponcategory  couponcategory[]
+  productcategory productcategory[]
 
-  @@id([variantId, attributeValueId])
-  @@index([attributeValueId])
+  @@index([parentId], map: "Category_parentId_idx")
 }
 
-model ProductImage {
-  id        String          @id @default(cuid())
+model coupon {
+  id                    String           @id
+  code                  String           @unique(map: "Coupon_code_key")
+  description           String?
+  type                  coupon_type
+  value                 Decimal          @db.Decimal(12, 2)
+  minOrderAmount        Decimal?         @db.Decimal(12, 2)
+  maxDiscountAmount     Decimal?         @db.Decimal(12, 2)
+  startsAt              DateTime?
+  endsAt                DateTime?
+  usageLimit            Int?
+  usageLimitPerCustomer Int?
+  isActive              Boolean          @default(true)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime
+  deletedAt             DateTime?
+  couponcategory        couponcategory[]
+  couponproduct         couponproduct[]
+  couponusage           couponusage[]
+
+  @@index([isActive, startsAt, endsAt], map: "Coupon_isActive_startsAt_endsAt_idx")
+}
+
+model couponcategory {
+  couponId   String
+  categoryId String
+  category   category @relation(fields: [categoryId], references: [id], onDelete: Cascade, map: "CouponCategory_categoryId_fkey")
+  coupon     coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade, map: "CouponCategory_couponId_fkey")
+
+  @@id([couponId, categoryId])
+  @@index([categoryId], map: "CouponCategory_categoryId_idx")
+}
+
+model couponproduct {
+  couponId  String
   productId String
-  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variantId String? // set when the image is specific to one variant (e.g. a shade close-up)
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  url       String
-  altText   String?
-  position  Int             @default(0)
-  isPrimary Boolean         @default(false)
-  createdAt DateTime        @default(now())
+  coupon    coupon  @relation(fields: [couponId], references: [id], onDelete: Cascade, map: "CouponProduct_couponId_fkey")
+  product   product @relation(fields: [productId], references: [id], onDelete: Cascade, map: "CouponProduct_productId_fkey")
 
-  @@index([productId])
-  @@index([variantId])
+  @@id([couponId, productId])
+  @@index([productId], map: "CouponProduct_productId_idx")
 }
 
-/// Global ingredient dictionary — enables "contains no X" allergen filtering without repeating text per product
-model Ingredient {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  inciName    String? // International Nomenclature of Cosmetic Ingredients name
-  description String?  @db.Text
-  isAllergen  Boolean  @default(false)
-  createdAt   DateTime @default(now())
+model couponusage {
+  id             String   @id
+  couponId       String
+  userId         String
+  orderId        String
+  discountAmount Decimal  @db.Decimal(12, 2)
+  createdAt      DateTime @default(now())
+  coupon         coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade, map: "CouponUsage_couponId_fkey")
+  order          order    @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "CouponUsage_orderId_fkey")
+  user           user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "CouponUsage_userId_fkey")
 
-  products ProductIngredient[]
+  @@unique([couponId, orderId], map: "CouponUsage_couponId_orderId_key")
+  @@index([orderId], map: "CouponUsage_orderId_fkey")
+  @@index([userId], map: "CouponUsage_userId_idx")
 }
 
-model ProductIngredient {
-  productId    String
-  ingredientId String
-  position     Int        @default(0) // ordering, as required by cosmetics labeling regulation in many regions
-  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
-  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
-
-  @@id([productId, ingredientId])
-  @@index([ingredientId])
+model ingredient {
+  id                String              @id
+  name              String              @unique(map: "Ingredient_name_key")
+  inciName          String?
+  description       String?             @db.Text
+  isAllergen        Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  productingredient productingredient[]
 }
 
-model Tag {
-  id   String @id @default(cuid())
-  name String @unique
-  slug String @unique
+model inventoryitem {
+  id                   String                 @id
+  sellerId             String
+  variantId            String
+  warehouseId          String
+  quantityOnHand       Int                    @default(0)
+  quantityReserved     Int                    @default(0)
+  lowStockThreshold    Int                    @default(5)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime
+  seller               seller                 @relation(fields: [sellerId], references: [id], map: "InventoryItem_sellerId_fkey")
+  productvariant       productvariant         @relation(fields: [variantId], references: [id], onDelete: Cascade, map: "InventoryItem_variantId_fkey")
+  warehouse            warehouse              @relation(fields: [warehouseId], references: [id], map: "InventoryItem_warehouseId_fkey")
+  inventorytransaction inventorytransaction[]
 
-  products ProductTag[]
+  @@unique([variantId, warehouseId], map: "InventoryItem_variantId_warehouseId_key")
+  @@index([sellerId], map: "InventoryItem_sellerId_idx")
+  @@index([warehouseId], map: "InventoryItem_warehouseId_idx")
 }
 
-model ProductTag {
-  productId String
-  tagId     String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([productId, tagId])
-  @@index([tagId])
-}
-
-// =====================================================================
-// INVENTORY
-// =====================================================================
-
-model InventoryItem {
-  id                String   @id @default(cuid())
-  sellerId          String // denormalized from variant.sellerId
-  seller            Seller   @relation(fields: [sellerId], references: [id], onDelete: Restrict)
-  variantId         String
-  variant           ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  warehouseId       String
-  warehouse         Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
-  quantityOnHand    Int      @default(0)
-  quantityReserved  Int      @default(0) // held for unpaid/processing orders
-  lowStockThreshold Int      @default(5)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  transactions InventoryTransaction[]
-
-  // quantityAvailable = quantityOnHand - quantityReserved, computed at the application/query layer
-  @@unique([variantId, warehouseId])
-  @@index([sellerId])
-  @@index([warehouseId])
-}
-
-/// Append-only ledger of every stock movement — never update quantities without a matching row here
-model InventoryTransaction {
-  id              String                   @id @default(cuid())
+model inventorytransaction {
+  id              String                    @id
   inventoryItemId String
-  inventoryItem   InventoryItem            @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
-  type            InventoryTransactionType
-  quantityChange  Int // positive or negative
-  referenceType   String? // "ORDER", "MANUAL", "RETURN"
+  type            inventorytransaction_type
+  quantityChange  Int
+  referenceType   String?
   referenceId     String?
   note            String?
   createdByUserId String?
-  createdAt       DateTime                 @default(now())
+  createdAt       DateTime                  @default(now())
+  inventoryitem   inventoryitem             @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade, map: "InventoryTransaction_inventoryItemId_fkey")
 
-  @@index([inventoryItemId, createdAt])
+  @@index([inventoryItemId, createdAt], map: "InventoryTransaction_inventoryItemId_createdAt_idx")
 }
 
-// =====================================================================
-// CART & WISHLIST
-// =====================================================================
+model order {
+  id                 String               @id
+  orderNumber        String               @unique(map: "Order_orderNumber_key")
+  userId             String?
+  email              String
+  status             order_status         @default(PENDING_PAYMENT)
+  currency           String               @default("USD")
+  subtotal           Decimal              @db.Decimal(12, 2)
+  discountTotal      Decimal              @default(0.00) @db.Decimal(12, 2)
+  taxTotal           Decimal              @default(0.00) @db.Decimal(12, 2)
+  shippingTotal      Decimal              @default(0.00) @db.Decimal(12, 2)
+  grandTotal         Decimal              @db.Decimal(12, 2)
+  couponCode         String?
+  shippingAddress    Json
+  billingAddress     Json
+  placedAt           DateTime             @default(now())
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  couponusage        couponusage[]
+  user               user?                @relation(fields: [userId], references: [id], map: "Order_userId_fkey")
+  orderitem          orderitem[]
+  orderstatushistory orderstatushistory[]
+  payment            payment[]
 
-model Cart {
-  id        String    @id @default(cuid())
-  userId    String?
-  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sessionId String? // for guest carts, keyed off a browser session
-  currency  String    @default("USD")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  expiresAt DateTime?
-
-  items CartItem[]
-
-  @@index([userId])
-  @@index([sessionId])
+  @@index([placedAt], map: "Order_placedAt_idx")
+  @@index([status], map: "Order_status_idx")
+  @@index([userId], map: "Order_userId_idx")
 }
 
-model CartItem {
-  id         String         @id @default(cuid())
-  cartId     String
-  cart       Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  variantId  String
-  variant    ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-
-  sellerId   String
-  seller     Seller         @relation(fields: [sellerId], references: [id], onDelete: Restrict)
-
-  quantity   Int
-  priceAtAdd Decimal        @db.Decimal(12, 2)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-
-  @@unique([cartId, variantId])
-  @@index([sellerId])
-}
-
-model Wishlist {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  items WishlistItem[]
-}
-
-model WishlistItem {
-  id         String          @id @default(cuid())
-  wishlistId String
-  wishlist   Wishlist        @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
-  productId  String
-  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variantId  String? // optional — customer may wishlist a product without picking a shade yet
-  variant    ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  createdAt  DateTime        @default(now())
-
-  @@unique([wishlistId, productId, variantId])
-}
-
-// =====================================================================
-// ORDERS — snapshot-based so history stays correct after catalog edits
-// =====================================================================
-
-model Order {
-  id            String      @id @default(cuid())
-  orderNumber   String      @unique // human-readable, e.g. "ORD-2026-000482"
-  userId        String?
-  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  email         String
-  status        OrderStatus @default(PENDING_PAYMENT)
-  currency      String      @default("USD")
-  subtotal      Decimal     @db.Decimal(12, 2)
-  discountTotal Decimal     @default(0) @db.Decimal(12, 2)
-  taxTotal      Decimal     @default(0) @db.Decimal(12, 2)
-  shippingTotal Decimal     @default(0) @db.Decimal(12, 2)
-  grandTotal    Decimal     @db.Decimal(12, 2)
-  couponCode    String?
-  shippingAddress Json // full snapshot at time of order — never joined to Address
-  billingAddress  Json // full snapshot at time of order — never joined to Address
-  placedAt      DateTime    @default(now())
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  items         OrderItem[]
-  payments      Payment[]
-  statusHistory OrderStatusHistory[]
-  couponUsages  CouponUsage[]
-
-  @@index([userId])
-  @@index([status])
-  @@index([placedAt])
-}
-
-model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  sellerId  String // enables splitting fulfillment/payout by seller later
-  seller    Seller  @relation(fields: [sellerId], references: [id], onDelete: Restrict)
-  productId String? // nullable + SetNull: order survives even if the product is later deleted
-  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
-  variantId String?
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
-
-  // --- snapshot fields: the source of truth for what was actually purchased ---
+model orderitem {
+  id                        String               @id
+  orderId                   String
+  sellerId                  String
+  productId                 String?
+  variantId                 String?
   productNameSnapshot       String
   variantSkuSnapshot        String
-  variantAttributesSnapshot Json? // e.g. {"Shade":"Rosy Pink","Size":"30ml"}
+  variantAttributesSnapshot Json?
   imageUrlSnapshot          String?
-  unitPriceSnapshot         Decimal @db.Decimal(12, 2)
+  unitPriceSnapshot         Decimal              @db.Decimal(12, 2)
+  quantity                  Int
+  discountAmount            Decimal              @default(0.00) @db.Decimal(12, 2)
+  taxAmount                 Decimal              @default(0.00) @db.Decimal(12, 2)
+  lineTotal                 Decimal              @db.Decimal(12, 2)
+  status                    orderitem_status     @default(PENDING)
+  createdAt                 DateTime             @default(now())
+  updatedAt                 DateTime
+  order                     order                @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "OrderItem_orderId_fkey")
+  product                   product?             @relation(fields: [productId], references: [id], map: "OrderItem_productId_fkey")
+  seller                    seller               @relation(fields: [sellerId], references: [id], map: "OrderItem_sellerId_fkey")
+  productvariant            productvariant?      @relation(fields: [variantId], references: [id], map: "OrderItem_variantId_fkey")
+  orderstatushistory        orderstatushistory[]
+  review                    review[]
 
-  quantity        Int
-  discountAmount  Decimal         @default(0) @db.Decimal(12, 2)
-  taxAmount       Decimal         @default(0) @db.Decimal(12, 2)
-  lineTotal       Decimal         @db.Decimal(12, 2)
-  status          OrderItemStatus @default(PENDING) // per-seller fulfillment status
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-
-  statusHistory OrderStatusHistory[]
-  reviews       Review[]
-
-  @@index([orderId])
-  @@index([sellerId])
-  @@index([productId])
+  @@index([orderId], map: "OrderItem_orderId_idx")
+  @@index([productId], map: "OrderItem_productId_idx")
+  @@index([sellerId], map: "OrderItem_sellerId_idx")
+  @@index([variantId], map: "OrderItem_variantId_fkey")
 }
 
-/// Generic status-change ledger — orderItemId null = order-level event, set = per-seller item event
-model OrderStatusHistory {
-  id              String     @id @default(cuid())
+model orderstatushistory {
+  id              String     @id
   orderId         String
-  order           Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderItemId     String?
-  orderItem       OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  status          String // OrderStatus or OrderItemStatus value, stored as string to keep one shared table
+  status          String
   note            String?
   changedByUserId String?
   createdAt       DateTime   @default(now())
+  order           order      @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "OrderStatusHistory_orderId_fkey")
+  orderitem       orderitem? @relation(fields: [orderItemId], references: [id], onDelete: Cascade, map: "OrderStatusHistory_orderItemId_fkey")
 
-  @@index([orderId, createdAt])
-  @@index([orderItemId])
+  @@index([orderId, createdAt], map: "OrderStatusHistory_orderId_createdAt_idx")
+  @@index([orderItemId], map: "OrderStatusHistory_orderItemId_idx")
 }
 
-model Payment {
-  id                String          @id @default(cuid())
+model passwordresettoken {
+  id        String    @id
+  token     String    @unique(map: "PasswordResetToken_token_key")
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      user      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "PasswordResetToken_userId_fkey")
+
+  @@index([userId, expiresAt], map: "PasswordResetToken_userId_expiresAt_idx")
+}
+
+model payment {
+  id                String           @id
   orderId           String
-  order             Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  provider          PaymentProvider
+  provider          payment_provider
   providerPaymentId String
-  amount            Decimal         @db.Decimal(12, 2)
+  amount            Decimal          @db.Decimal(12, 2)
   currency          String
-  status            PaymentStatus   @default(PENDING)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  status            payment_status   @default(PENDING)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime
+  order             order            @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "Payment_orderId_fkey")
 
-  @@unique([provider, providerPaymentId])
-  @@index([orderId])
+  @@unique([provider, providerPaymentId], map: "Payment_provider_providerPaymentId_key")
+  @@index([orderId], map: "Payment_orderId_idx")
 }
 
-// =====================================================================
-// COUPONS / PROMOTIONS
-// =====================================================================
-
-model Coupon {
-  id                    String     @id @default(cuid())
-  code                  String     @unique
-  description           String?
-  type                  CouponType
-  value                 Decimal    @db.Decimal(12, 2)
-  minOrderAmount        Decimal?   @db.Decimal(12, 2)
-  maxDiscountAmount     Decimal?   @db.Decimal(12, 2) // caps a PERCENTAGE discount
-  startsAt              DateTime?
-  endsAt                DateTime?
-  usageLimit            Int? // total redemptions across all customers
-  usageLimitPerCustomer Int?
-  isActive              Boolean    @default(true)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-  deletedAt             DateTime?
-
-  products   CouponProduct[] // empty = store-wide
-  categories CouponCategory[] // empty = store-wide
-  usages     CouponUsage[]
-
-  @@index([isActive, startsAt, endsAt])
+model permission {
+  id             String           @id
+  name           String           @unique(map: "Permission_name_key")
+  description    String?
+  createdAt      DateTime         @default(now())
+  rolepermission rolepermission[]
 }
 
-model CouponProduct {
-  couponId  String
-  productId String
-  coupon    Coupon  @relation(fields: [couponId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+model product {
+  id                String              @id
+  sellerId          String
+  brandId           String?
+  name              String
+  slug              String              @unique(map: "Product_slug_key")
+  description       String?             @db.Text
+  shortDescription  String?
+  status            product_status      @default(DRAFT)
+  seoTitle          String?
+  seoDescription    String?             @db.Text
+  seoKeywords       String?
+  publishedAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  deletedAt         DateTime?
+  couponproduct     couponproduct[]
+  orderitem         orderitem[]
+  brand             brand?              @relation(fields: [brandId], references: [id], map: "Product_brandId_fkey")
+  seller            seller              @relation(fields: [sellerId], references: [id], map: "Product_sellerId_fkey")
+  productcategory   productcategory[]
+  productimage      productimage[]
+  productingredient productingredient[]
+  producttag        producttag[]
+  productvariant    productvariant[]
+  review            review[]
+  wishlistitem      wishlistitem[]
 
-  @@id([couponId, productId])
-  @@index([productId])
+  @@index([brandId], map: "Product_brandId_idx")
+  @@index([sellerId, status], map: "Product_sellerId_status_idx")
+  @@index([status], map: "Product_status_idx")
 }
 
-model CouponCategory {
-  couponId   String
+model productcategory {
+  productId  String
   categoryId String
-  coupon     Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  isPrimary  Boolean  @default(false)
+  category   category @relation(fields: [categoryId], references: [id], onDelete: Cascade, map: "ProductCategory_categoryId_fkey")
+  product    product  @relation(fields: [productId], references: [id], onDelete: Cascade, map: "ProductCategory_productId_fkey")
 
-  @@id([couponId, categoryId])
-  @@index([categoryId])
+  @@id([productId, categoryId])
+  @@index([categoryId], map: "ProductCategory_categoryId_idx")
 }
 
-model CouponUsage {
-  id             String   @id @default(cuid())
-  couponId       String
-  coupon         Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
-  userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderId        String
-  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  discountAmount Decimal  @db.Decimal(12, 2)
-  createdAt      DateTime @default(now())
+model productimage {
+  id             String          @id
+  productId      String
+  variantId      String?
+  // LongText: without it, Prisma's default MySQL mapping for String is
+  // VARCHAR(191), which is far too short for the data: URI base64 payloads
+  // produced by the admin's "attach from computer" image upload.
+  url            String          @db.LongText
+  altText        String?
+  position       Int             @default(0)
+  isPrimary      Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  product        product         @relation(fields: [productId], references: [id], onDelete: Cascade, map: "ProductImage_productId_fkey")
+  productvariant productvariant? @relation(fields: [variantId], references: [id], onDelete: Cascade, map: "ProductImage_variantId_fkey")
 
-  @@unique([couponId, orderId])
-  @@index([userId])
+  @@index([productId], map: "ProductImage_productId_idx")
+  @@index([variantId], map: "ProductImage_variantId_idx")
 }
 
-// =====================================================================
-// REVIEWS
-// =====================================================================
+model productingredient {
+  productId    String
+  ingredientId String
+  position     Int        @default(0)
+  ingredient   ingredient @relation(fields: [ingredientId], references: [id], map: "ProductIngredient_ingredientId_fkey")
+  product      product    @relation(fields: [productId], references: [id], onDelete: Cascade, map: "ProductIngredient_productId_fkey")
 
-model Review {
-  id                 String       @id @default(cuid())
+  @@id([productId, ingredientId])
+  @@index([ingredientId], map: "ProductIngredient_ingredientId_idx")
+}
+
+model producttag {
+  productId String
+  tagId     String
+  product   product @relation(fields: [productId], references: [id], onDelete: Cascade, map: "ProductTag_productId_fkey")
+  tag       tag     @relation(fields: [tagId], references: [id], onDelete: Cascade, map: "ProductTag_tagId_fkey")
+
+  @@id([productId, tagId])
+  @@index([tagId], map: "ProductTag_tagId_idx")
+}
+
+model productvariant {
+  id                    String                  @id
+  productId             String
+  sellerId              String
+  sku                   String
+  barcode               String?
+  price                 Decimal                 @db.Decimal(12, 2)
+  compareAtPrice        Decimal?                @db.Decimal(12, 2)
+  costPrice             Decimal?                @db.Decimal(12, 2)
+  weightGrams           Int?
+  isActive              Boolean                 @default(true)
+  sortOrder             Int                     @default(0)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime
+  deletedAt             DateTime?
+  cartitem              cartitem[]
+  inventoryitem         inventoryitem[]
+  orderitem             orderitem[]
+  productimage          productimage[]
+  product               product                 @relation(fields: [productId], references: [id], onDelete: Cascade, map: "ProductVariant_productId_fkey")
+  seller                seller                  @relation(fields: [sellerId], references: [id], map: "ProductVariant_sellerId_fkey")
+  variantattributevalue variantattributevalue[]
+  wishlistitem          wishlistitem[]
+
+  @@unique([sellerId, sku], map: "ProductVariant_sellerId_sku_key")
+  @@index([productId], map: "ProductVariant_productId_idx")
+}
+
+model refreshtoken {
+  id        String    @id
+  token     String    @unique(map: "RefreshToken_token_key")
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      user      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "RefreshToken_userId_fkey")
+
+  @@index([userId, expiresAt], map: "RefreshToken_userId_expiresAt_idx")
+}
+
+model review {
+  id                 String        @id
   productId          String
-  product            Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
   userId             String
-  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderItemId        String? // presence + match establishes "verified purchase"
-  orderItem          OrderItem?   @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
-  rating             Int // 1–5; enforce range via a DB check constraint or application validation
+  orderItemId        String?
+  rating             Int
   title              String?
-  body               String?      @db.Text
-  status             ReviewStatus @default(PENDING)
-  isVerifiedPurchase Boolean      @default(false)
+  body               String?       @db.Text
+  status             review_status @default(PENDING)
+  isVerifiedPurchase Boolean       @default(false)
   moderatedByUserId  String?
   moderatedAt        DateTime?
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime
   deletedAt          DateTime?
+  orderitem          orderitem?    @relation(fields: [orderItemId], references: [id], map: "Review_orderItemId_fkey")
+  product            product       @relation(fields: [productId], references: [id], onDelete: Cascade, map: "Review_productId_fkey")
+  user               user          @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Review_userId_fkey")
+  reviewimage        reviewimage[]
 
-  images ReviewImage[]
-
-  @@unique([productId, userId])
-  @@index([productId, status])
+  @@unique([productId, userId], map: "Review_productId_userId_key")
+  @@index([orderItemId], map: "Review_orderItemId_fkey")
+  @@index([productId, status], map: "Review_productId_status_idx")
+  @@index([userId], map: "Review_userId_fkey")
 }
 
-model ReviewImage {
-  id       String @id @default(cuid())
+model reviewimage {
+  id       String @id
   reviewId String
-  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   url      String
   position Int    @default(0)
+  review   review @relation(fields: [reviewId], references: [id], onDelete: Cascade, map: "ReviewImage_reviewId_fkey")
 
-  @@index([reviewId])
+  @@index([reviewId], map: "ReviewImage_reviewId_idx")
+}
+
+model role {
+  id             String           @id
+  name           String           @unique(map: "Role_name_key")
+  description    String?
+  isSystem       Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  rolepermission rolepermission[]
+  userrole       userrole[]
+}
+
+model rolepermission {
+  roleId       String
+  permissionId String
+  permission   permission @relation(fields: [permissionId], references: [id], onDelete: Cascade, map: "RolePermission_permissionId_fkey")
+  role         role       @relation(fields: [roleId], references: [id], onDelete: Cascade, map: "RolePermission_roleId_fkey")
+
+  @@id([roleId, permissionId])
+  @@index([permissionId], map: "RolePermission_permissionId_idx")
+}
+
+model seller {
+  id             String           @id
+  name           String
+  slug           String           @unique(map: "Seller_slug_key")
+  type           seller_type      @default(PLATFORM)
+  status         seller_status    @default(ACTIVE)
+  email          String?
+  commissionRate Decimal?         @db.Decimal(5, 2)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  cartitem       cartitem[]
+  inventoryitem  inventoryitem[]
+  orderitem      orderitem[]
+  product        product[]
+  productvariant productvariant[]
+  warehouse      warehouse[]
+
+  @@index([type, status], map: "Seller_type_status_idx")
+}
+
+model tag {
+  id         String       @id
+  name       String       @unique(map: "Tag_name_key")
+  slug       String       @unique(map: "Tag_slug_key")
+  producttag producttag[]
+}
+
+model user {
+  id                 String               @id
+  email              String               @unique(map: "User_email_key")
+  passwordHash       String
+  firstName          String
+  lastName           String
+  phone              String?
+  isActive           Boolean              @default(true)
+  emailVerifiedAt    DateTime?
+  lastLoginAt        DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  deletedAt          DateTime?
+  address            address[]
+  cart               cart[]
+  couponusage        couponusage[]
+  order              order[]
+  passwordresettoken passwordresettoken[]
+  refreshtoken       refreshtoken[]
+  review             review[]
+  userrole           userrole[]
+  wishlist           wishlist?
+
+  @@index([deletedAt], map: "User_deletedAt_idx")
+}
+
+model userrole {
+  userId String
+  roleId String
+  role   role   @relation(fields: [roleId], references: [id], onDelete: Cascade, map: "UserRole_roleId_fkey")
+  user   user   @relation(fields: [userId], references: [id], onDelete: Cascade, map: "UserRole_userId_fkey")
+
+  @@id([userId, roleId])
+  @@index([roleId], map: "UserRole_roleId_idx")
+}
+
+model variantattributevalue {
+  variantId        String
+  attributeValueId String
+  attributevalue   attributevalue @relation(fields: [attributeValueId], references: [id], map: "VariantAttributeValue_attributeValueId_fkey")
+  productvariant   productvariant @relation(fields: [variantId], references: [id], onDelete: Cascade, map: "VariantAttributeValue_variantId_fkey")
+
+  @@id([variantId, attributeValueId])
+  @@index([attributeValueId], map: "VariantAttributeValue_attributeValueId_idx")
+}
+
+model warehouse {
+  id            String          @id
+  sellerId      String
+  name          String
+  code          String
+  line1         String
+  line2         String?
+  city          String
+  state         String?
+  postalCode    String?
+  country       String
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  inventoryitem inventoryitem[]
+  seller        seller          @relation(fields: [sellerId], references: [id], onDelete: Cascade, map: "Warehouse_sellerId_fkey")
+
+  @@unique([sellerId, code], map: "Warehouse_sellerId_code_key")
+  @@index([sellerId], map: "Warehouse_sellerId_idx")
+}
+
+model wishlist {
+  id           String         @id
+  userId       String         @unique(map: "Wishlist_userId_key")
+  createdAt    DateTime       @default(now())
+  user         user           @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Wishlist_userId_fkey")
+  wishlistitem wishlistitem[]
+}
+
+model wishlistitem {
+  id             String          @id
+  wishlistId     String
+  productId      String
+  variantId      String?
+  createdAt      DateTime        @default(now())
+  product        product         @relation(fields: [productId], references: [id], onDelete: Cascade, map: "WishlistItem_productId_fkey")
+  productvariant productvariant? @relation(fields: [variantId], references: [id], onDelete: Cascade, map: "WishlistItem_variantId_fkey")
+  wishlist       wishlist        @relation(fields: [wishlistId], references: [id], onDelete: Cascade, map: "WishlistItem_wishlistId_fkey")
+
+  @@unique([wishlistId, productId, variantId], map: "WishlistItem_wishlistId_productId_variantId_key")
+  @@index([productId], map: "WishlistItem_productId_fkey")
+  @@index([variantId], map: "WishlistItem_variantId_fkey")
+}
+
+enum inventorytransaction_type {
+  RESTOCK
+  SALE
+  RESERVATION
+  RELEASE
+  ADJUSTMENT
+  RETURN
+}
+
+enum payment_provider {
+  STRIPE
+}
+
+enum attribute_inputType {
+  SELECT
+  COLOR
+  TEXT
+  NUMBER
+}
+
+enum coupon_type {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum seller_type {
+  PLATFORM
+  VENDOR
+}
+
+enum order_status {
+  PENDING_PAYMENT
+  PAID
+  PROCESSING
+  PARTIALLY_SHIPPED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum seller_status {
+  ACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum payment_status {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum product_status {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum review_status {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum orderitem_status {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+  REFUNDED
 }

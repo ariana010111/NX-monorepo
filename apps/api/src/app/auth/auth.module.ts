@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { PermissionsGuard } from './guards/permissions.guard';
 import { UsersModule } from '../users/users.module';
 import { JWT_SECRET, JWT_EXPIRES_IN } from './auth.constants';
 import { RefreshTokensRepository, PrismaRefreshTokensRepository } from './refresh-tokens.repository';
@@ -29,6 +30,7 @@ import { PasswordResetTokensRepository, PrismaPasswordResetTokensRepository } fr
     // into role checks with @Roles(...).
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: PermissionsGuard },
   ],
   exports: [AuthService],
 })

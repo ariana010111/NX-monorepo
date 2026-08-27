@@ -10,39 +10,71 @@ import type { ProductResponseDto } from '@beauty-platform-validated/api-client';
   standalone: true,
   imports: [RouterLink, DecimalPipe],
   template: `
-    <h1>Shop</h1>
-
-    @if (facade.isLoading()) {
-      <p>Loading…</p>
-    } @else if (facade.hasError()) {
-      <p>Something went wrong loading products.</p>
-    } @else {
-      <div class="grid">
-        @for (product of facade.products(); track product.id) {
-          <div class="card">
-            <a [routerLink]="['/products', product.slug]">
-              @if (product.images[0]; as img) {
-                <img [src]="img.url" [alt]="img.altText ?? product.name" />
-              }
-              <h3>{{ product.name }}</h3>
-              <p>{{ product.brandName }}</p>
-              @if (product.fromPrice) {
-                <p>From {{ product.fromPrice | number: '1.2-2' }}</p>
-              }
-            </a>
-            <button
-              type="button"
-              [attr.aria-pressed]="isWishlisted(product.id)"
-              (click)="onToggleWishlist(product)"
-            >
-              {{ isWishlisted(product.id) ? '♥' : '♡' }}
-            </button>
+    <div class="page-shell">
+      <section class="hero">
+        <div class="hero-card">
+          <div class="hero-copy">
+            <span class="beauty-meta">New collection</span>
+            <h1>Beauty, curated for you.</h1>
+            <p>Thoughtful formulas, premium ingredients, and everyday rituals designed to glow from the inside out.</p>
+            <div class="hero-actions">
+              <a class="storefront-cta" routerLink="/">Shop now</a>
+              <a class="beauty-btn beauty-btn--secondary" routerLink="/">Explore brands</a>
+            </div>
           </div>
-        }
+        </div>
+        <div class="hero-card__image" aria-hidden="true"></div>
+      </section>
+
+      <div class="catalog-toolbar">
+        <div>
+          <div class="beauty-subtle">Home / Shop</div>
+          <h2>Shop bestsellers</h2>
+        </div>
+        <div class="beauty-subtle">{{ facade.products().length }} items</div>
       </div>
-      <button (click)="facade.prevPage()">Previous</button>
-      <button (click)="facade.nextPage()">Next</button>
-    }
+
+      @if (facade.isLoading()) {
+        <p class="beauty-subtle">Loading…</p>
+      } @else if (facade.hasError()) {
+        <p class="beauty-subtle">Something went wrong loading products.</p>
+      } @else {
+        <div class="beauty-product-grid">
+          @for (product of facade.products(); track product.id) {
+            <article class="beauty-product-card">
+              <div class="beauty-product-card__image-wrap">
+                <button
+                  class="beauty-product-card__wishlist"
+                  type="button"
+                  [attr.aria-pressed]="isWishlisted(product.id)"
+                  (click)="onToggleWishlist(product)"
+                >
+                  {{ isWishlisted(product.id) ? '♥' : '♡' }}
+                </button>
+                <a [routerLink]="['/products', product.slug]">
+                  @if (product.images[0]; as img) {
+                    <img [src]="img.url" [alt]="img.altText ?? product.name" />
+                  }
+                </a>
+              </div>
+              <div class="beauty-product-card__body">
+                <div class="beauty-product-card__brand">{{ product.brandName }}</div>
+                <a [routerLink]="['/products', product.slug]"><h3 class="beauty-product-card__name">{{ product.name }}</h3></a>
+                <div class="beauty-rating">★★★★★ <span>4.8</span></div>
+                @if (product.fromPrice) {
+                  <div class="beauty-price">{{ product.fromPrice | number: '1.2-2' }}</div>
+                }
+              </div>
+            </article>
+          }
+        </div>
+
+        <div class="hero-actions" style="margin-top: 24px;">
+          <button class="beauty-btn beauty-btn--secondary" type="button" (click)="facade.prevPage()">Previous</button>
+          <button class="beauty-btn beauty-btn--primary" type="button" (click)="facade.nextPage()">Next</button>
+        </div>
+      }
+    </div>
   `,
 })
 export class CatalogListComponent {

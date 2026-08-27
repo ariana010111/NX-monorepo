@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import crypto from 'node:crypto';
 import { PaymentResponseDto } from './dto/payment-response.dto';
 
 export abstract class PaymentsRepository {
@@ -17,6 +18,6 @@ export abstract class PaymentsRepository {
 export class PrismaPaymentsRepository implements PaymentsRepository {
   constructor(private readonly prisma: PrismaService) {}
   private map(payment: any): PaymentResponseDto { return { id: payment.id, orderId: payment.orderId, provider: payment.provider, providerPaymentId: payment.providerPaymentId, amount: Number(payment.amount), currency: payment.currency, status: payment.status, createdAt: payment.createdAt.toISOString() }; }
-  async create(payment: Omit<PaymentResponseDto, 'id' | 'createdAt'>) { return this.map(await this.prisma.payment.create({ data: { orderId: payment.orderId, provider: payment.provider as any, providerPaymentId: payment.providerPaymentId, amount: payment.amount, currency: payment.currency, status: payment.status as any } })); }
+  async create(payment: Omit<PaymentResponseDto, 'id' | 'createdAt'>) { return this.map(await this.prisma.payment.create({ data: { id: crypto.randomUUID(), orderId: payment.orderId, provider: payment.provider as any, providerPaymentId: payment.providerPaymentId, amount: payment.amount, currency: payment.currency, status: payment.status as any } as any })); }
   async findByOrderId(orderId: string) { return (await this.prisma.payment.findMany({ where: { orderId }, orderBy: { createdAt: 'asc' } })).map((payment) => this.map(payment)); }
 }

@@ -1,0 +1,273 @@
+:root {
+  --beauty-brand: #ff385c;
+  --beauty-brand-strong: #e62c4c;
+  --beauty-brand-soft: rgba(255, 56, 92, 0.12);
+  --beauty-bg: #ffffff;
+  --beauty-bg-alt: #f7f7f7;
+  --beauty-bg-soft: #f8f8f8;
+  --beauty-text: #222222;
+  --beauty-text-secondary: #717171;
+  --beauty-text-muted: #b0b0b0;
+  --beauty-border: #dddddd;
+  --beauty-border-strong: #b0b0b0;
+  --beauty-success: #2d7d5c;
+  --beauty-warning: #b8792d;
+  --beauty-danger: #d93f4b;
+  --beauty-shadow-soft: 0 2px 8px rgba(34, 34, 34, 0.08);
+  --beauty-shadow-panel: 0 8px 24px rgba(34, 34, 34, 0.06);
+  --beauty-radius-xs: 8px;
+  --beauty-radius-sm: 10px;
+  --beauty-radius-md: 14px;
+  --beauty-radius-lg: 18px;
+  --beauty-radius-xl: 22px;
+  --beauty-space-1: 4px;
+  --beauty-space-2: 8px;
+  --beauty-space-3: 12px;
+  --beauty-space-4: 16px;
+  --beauty-space-5: 20px;
+  --beauty-space-6: 24px;
+  --beauty-space-8: 32px;
+  --beauty-space-10: 40px;
+  --beauty-space-12: 48px;
+  --beauty-space-16: 64px;
+  --beauty-font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --beauty-transition: 180ms ease;
+  --beauty-container: 1200px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--beauty-font-stack);
+  background: var(--beauty-bg);
+  color: var(--beauty-text);
+  line-height: 1.5;
+}
+
+a { color: inherit; text-decoration: none; }
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+img { max-width: 100%; display: block; }
+
+button, input, select, textarea {
+  border: 1px solid var(--beauty-border);
+  border-radius: var(--beauty-radius-sm);
+  background: var(--beauty-bg);
+  color: var(--beauty-text);
+  transition: border-color var(--beauty-transition), box-shadow var(--beauty-transition), background-color var(--beauty-transition), transform var(--beauty-transition);
+}
+
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+  outline: 3px solid rgba(255, 56, 92, 0.18);
+  outline-offset: 2px;
+}
+
+.beauty-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.7rem 1.2rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--beauty-transition), border-color var(--beauty-transition), transform var(--beauty-transition), opacity var(--beauty-transition);
+}
+
+.beauty-btn:hover { transform: translateY(-1px); }
+
+.beauty-btn--primary {
+  background: var(--beauty-brand);
+  border-color: var(--beauty-brand);
+  color: #fff;
+}
+
+.beauty-btn--primary:hover {
+  background: var(--beauty-brand-strong);
+  border-color: var(--beauty-brand-strong);
+}
+
+.beauty-btn--secondary {
+  background: var(--beauty-bg);
+  border-color: var(--beauty-border);
+  color: var(--beauty-text);
+}
+
+.beauty-page {
+  width: min(var(--beauty-container), calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 64px;
+}
+
+.beauty-section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.beauty-section-head h1,
+.beauty-section-head h2,
+.beauty-section-head h3 {
+  margin: 0;
+}
+
+.beauty-surface,
+.beauty-card,
+.admin-panel,
+.checkout-panel,
+.auth-panel {
+  background: var(--beauty-bg);
+  border: 1px solid var(--beauty-border);
+  border-radius: var(--beauty-radius-lg);
+}
+
+.beauty-card {
+  overflow: hidden;
+}
+
+.beauty-product-grid,
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.beauty-product-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--beauty-bg);
+  border: 1px solid var(--beauty-border);
+  border-radius: var(--beauty-radius-lg);
+  transition: border-color var(--beauty-transition), box-shadow var(--beauty-transition), transform var(--beauty-transition);
+}
+
+.beauty-product-card:hover {
+  border-color: var(--beauty-border-strong);
+  box-shadow: var(--beauty-shadow-soft);
+  transform: translateY(-2px);
+}
+
+.beauty-product-card__image-wrap {
+  position: relative;
+  background: var(--beauty-bg-soft);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.beauty-product-card__image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 220ms ease;
+}
+
+.beauty-product-card:hover .beauty-product-card__image-wrap img {
+  transform: scale(1.04);
+}
+
+.beauty-product-card__wishlist {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(221, 221, 221, 0.9);
+  color: var(--beauty-text);
+}
+
+.beauty-product-card__body {
+  padding: 14px 14px 16px;
+}
+
+.beauty-product-card__brand,
+.beauty-meta,
+.beauty-subtle {
+  color: var(--beauty-text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.beauty-product-card__name {
+  margin: 6px 0 8px;
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.beauty-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--beauty-text-secondary);
+}
+
+.beauty-price {
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--beauty-text);
+}
+
+.beauty-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--beauty-bg);
+}
+
+.beauty-table th,
+.beauty-table td {
+  text-align: left;
+  padding: 16px 14px;
+  border-bottom: 1px solid var(--beauty-border);
+  vertical-align: middle;
+}
+
+.beauty-table th {
+  font-size: 12px;
+  color: var(--beauty-text-secondary);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.beauty-table tbody tr:hover {
+  background: var(--beauty-bg-soft);
+}
+
+@media (max-width: 1024px) {
+  .beauty-product-grid,
+  .catalog-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .beauty-product-grid,
+  .catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .beauty-page {
+    width: min(var(--beauty-container), calc(100% - 20px));
+  }
+}
+
+@media (max-width: 540px) {
+  .beauty-product-grid,
+  .catalog-grid {
+    grid-template-columns: 1fr;
+  }
+}

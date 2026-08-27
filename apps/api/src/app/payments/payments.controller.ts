@@ -23,7 +23,7 @@ export class PaymentsController {
     return this.paymentsService.payForOrder(orderId);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
   @ApiBearerAuth()
   @Get('orders/:orderId')
   @ApiOkResponse({ type: PaymentResponseDto, isArray: true })

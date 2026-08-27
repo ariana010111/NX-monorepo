@@ -6,4 +6,5 @@ export class UserResponseDto {
   @ApiProperty() firstName!: string;
   @ApiProperty() lastName!: string;
   @ApiProperty({ type: String, isArray: true }) roles!: string[];
+  @ApiProperty({ type: String, isArray: true }) permissions!: string[];
 }

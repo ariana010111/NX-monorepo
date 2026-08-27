@@ -6,6 +6,7 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrderResponseDto } from './dto/order-response.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Permission, Permissions } from '../auth/permissions';
 import { CurrentUser, AuthenticatedUser } from '../auth/decorators/current-user.decorator';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
@@ -14,7 +15,8 @@ import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.OrdersRead)
   @ApiBearerAuth()
   @Get()
   @ApiOkResponse({ type: OrderResponseDto, isArray: true })
@@ -45,17 +47,16 @@ export class OrdersController {
     return this.ordersService.create(dto, user?.userId);
   }
 
-  // Still public by necessity (a guest has no account to check ownership
-  // against) — this remains a documented gap: any order id is fetchable by
-  // anyone who has it. See VALIDATION_REPORT.md.
-  @Public()
+  // Authenticated customers may retrieve their own order; admin roles may
+  // retrieve any order. Ownership is enforced in OrdersService.
   @Get(':id')
   @ApiOkResponse({ type: OrderResponseDto })
-  getById(@Param('id') id: string) {
-    return this.ordersService.getById(id);
+  getById(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.ordersService.getByIdForActor(id, user);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.OrdersWrite)
   @ApiBearerAuth()
   @Patch(':id/status')
   @ApiOkResponse({ type: OrderResponseDto })

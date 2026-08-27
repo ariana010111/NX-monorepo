@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import crypto from 'node:crypto';
 import { ReviewResponseDto } from './dto/review-response.dto';
 
 export abstract class ReviewsRepository {
@@ -24,6 +25,6 @@ export class PrismaReviewsRepository implements ReviewsRepository {
   async findApprovedByProductId(productId: string) { return (await this.prisma.review.findMany({ where: { productId, status: 'APPROVED', deletedAt: null }, include: this.include, orderBy: { createdAt: 'desc' } })).map((review) => this.map(review)); }
   async findAll() { return (await this.prisma.review.findMany({ where: { deletedAt: null }, include: this.include, orderBy: { createdAt: 'desc' } })).map((review) => this.map(review)); }
   async findByUserAndProduct(userId: string, productId: string) { const review = await this.prisma.review.findUnique({ where: { productId_userId: { productId, userId } }, include: this.include }); return review ? this.map(review) : null; }
-  async create(review: Omit<ReviewResponseDto, 'id' | 'authorName' | 'createdAt'> & { authorName?: string }) { return this.map(await this.prisma.review.create({ data: { productId: review.productId, userId: review.userId, rating: review.rating, title: review.title, body: review.body, status: review.status as any, isVerifiedPurchase: review.isVerifiedPurchase }, include: this.include })); }
+  async create(review: Omit<ReviewResponseDto, 'id' | 'authorName' | 'createdAt'> & { authorName?: string }) { return this.map(await this.prisma.review.create({ data: { id: crypto.randomUUID(), productId: review.productId, userId: review.userId, rating: review.rating, title: review.title, body: review.body, status: review.status as any, isVerifiedPurchase: review.isVerifiedPurchase } as any, include: this.include })); }
   async updateStatus(id: string, status: 'APPROVED' | 'REJECTED') { const result = await this.prisma.review.updateMany({ where: { id, deletedAt: null }, data: { status } }); if (!result.count) return null; return this.map(await this.prisma.review.findUniqueOrThrow({ where: { id }, include: this.include })); }
 }

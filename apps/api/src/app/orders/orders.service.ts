@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { OrdersRepository } from './orders.repository';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { InventoryService } from '../inventory/inventory.service';
 import { CouponsService } from '../coupons/coupons.service';
+import { AuthenticatedUser } from '../auth/decorators/current-user.decorator';
 
 @Injectable()
 export class OrdersService {
@@ -38,6 +39,13 @@ export class OrdersService {
   async getById(id: string) {
     const order = await this.ordersRepo.findById(id);
     if (!order) throw new NotFoundException(`Order "${id}" not found`);
+    return order;
+  }
+
+  async getByIdForActor(id: string, user: AuthenticatedUser) {
+    const order = await this.getById(id);
+    const isAdmin = user.roles.some((role) => ['SUPERADMIN', 'SUPER_ADMIN', 'ADMIN', 'STAFF'].includes(role));
+    if (!isAdmin && order.userId !== user.userId) throw new ForbiddenException('You cannot access this order');
     return order;
   }
 

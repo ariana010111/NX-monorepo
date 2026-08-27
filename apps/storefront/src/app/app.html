@@ -1,1 +1,42 @@
-<router-outlet></router-outlet>
+<div class="app-shell storefront-shell">
+  <header class="storefront-header">
+    <div class="storefront-header__inner">
+      <a class="brand" routerLink="/" aria-label="Beauty home">
+        <span class="brand-mark">B</span>
+        <span>BeautyBloom</span>
+      </a>
+
+      <label class="storefront-search" aria-label="Search products">
+        <span aria-hidden="true">⌕</span>
+        <input type="search" placeholder="Search products, brands, categories" />
+      </label>
+
+      <div class="storefront-header__actions">
+        <nav class="storefront-nav" aria-label="Main navigation">
+          @for (item of navItems; track item.label) {
+            <a [routerLink]="item.link">{{ item.label }}</a>
+          }
+        </nav>
+        <a class="storefront-cta" routerLink="/login">Sign in</a>
+        <a class="storefront-cta" routerLink="/cart">Bag</a>
+      </div>
+    </div>
+
+    <nav class="storefront-subnav" aria-label="Popular categories">
+      @for (category of categories; track category) {
+        <a href="#" [class.active]="$first">{{ category }}</a>
+      }
+    </nav>
+  </header>
+
+  <main>
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>BeautyBloom</span>
+      <span>Premium beauty essentials</span>
+    </div>
+  </footer>
+</div>

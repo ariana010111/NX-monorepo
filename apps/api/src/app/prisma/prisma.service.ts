@@ -5,7 +5,7 @@ import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
-    const databaseUrl = new URL(process.env.DATABASE_URL!);
+    const databaseUrl = new URL(process.env.DATABASE_URL ?? 'mysql://root@localhost:3306/beauty_marketplace');
     super({
       adapter: new PrismaMariaDb({
         host: databaseUrl.hostname,

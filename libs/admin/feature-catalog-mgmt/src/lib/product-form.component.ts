@@ -18,77 +18,104 @@ import { UpdateProductDtoStatus } from '@beauty-platform-validated/api-client';
   standalone: true,
   imports: [ReactiveFormsModule],
   template: `
-    <h1>{{ id() ? 'Edit product' : 'New product' }}</h1>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <label>
-        Name
-        <input formControlName="name" />
-      </label>
-      @if (form.controls.name.invalid && form.controls.name.touched) {
-        <p>Name must be at least 2 characters.</p>
-      }
+    <section class="admin-panel">
+      <div class="beauty-section-head">
+        <h2>{{ id() ? 'Edit product' : 'New product' }}</h2>
+      </div>
 
-      @if (!id()) {
-        <label>
-          Slug
-          <input formControlName="slug" />
-        </label>
-      }
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-grid">
+        <div class="field" style="grid-column: 1 / -1;"><label>Name</label><input formControlName="name" /></div>
+        @if (form.controls.name.invalid && form.controls.name.touched) {
+          <p style="grid-column: 1 / -1;">Name must be at least 2 characters.</p>
+        }
 
-      <label>
-        Short description
-        <input formControlName="shortDescription" />
-      </label>
+        @if (!id()) {
+          <div class="field" style="grid-column: 1 / -1;"><label>Slug</label><input formControlName="slug" /></div>
+        }
 
-      <label>
-        Description
-        <textarea formControlName="description"></textarea>
-      </label>
+        <div class="field" style="grid-column: 1 / -1;"><label>Short description</label><input formControlName="shortDescription" /></div>
+        <div class="field" style="grid-column: 1 / -1;"><label>Description</label><textarea formControlName="description"></textarea></div>
+
+        @if (id()) {
+          <div class="field" style="grid-column: 1 / -1;"><label>Status</label>
+            <select formControlName="status">
+              <option value="DRAFT">Draft</option>
+              <option value="ACTIVE">Active</option>
+              <option value="ARCHIVED">Archived</option>
+            </select>
+          </div>
+        }
+
+        <div class="form-actions" style="grid-column: 1 / -1; justify-content: flex-start;">
+          <button class="beauty-btn beauty-btn--primary" type="submit" [disabled]="form.invalid">Save</button>
+        </div>
+      </form>
 
       @if (id()) {
-        <label>
-          Status
-          <select formControlName="status">
-            <option value="DRAFT">Draft</option>
-            <option value="ACTIVE">Active</option>
-            <option value="ARCHIVED">Archived</option>
-          </select>
-        </label>
+        <div class="form-grid" style="margin-top: 28px;">
+          <section class="feature-panel" style="padding: 20px;">
+            <h3>Variants</h3>
+            @for (variant of existingProduct.value()?.variants; track variant.id) {
+              <div style="padding: 10px 0; border-bottom: 1px solid var(--beauty-border);">{{ variant.sku }} — {{ variant.attributes[0]?.value }} — {{ variant.price }}</div>
+            }
+            <form [formGroup]="variantForm" (ngSubmit)="onAddVariant()" class="form-grid" style="margin-top: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end;">
+              <div class="field"><input formControlName="sku" placeholder="SKU" /></div>
+              <div class="field"><input formControlName="price" type="number" placeholder="Price" /></div>
+              <div class="field"><input formControlName="attributeName" placeholder="Attribute name (e.g. Shade)" /></div>
+              <div class="field"><input formControlName="attributeValue" placeholder="Attribute value (e.g. Rosy Pink)" /></div>
+              <div class="field"><input formControlName="initialStock" type="number" placeholder="Initial stock" /></div>
+              <div class="field"><button class="beauty-btn beauty-btn--primary" type="submit" [disabled]="variantForm.invalid">Add variant</button></div>
+              @if (variantError(); as err) {
+                <p role="alert" style="grid-column: 1 / -1;">{{ err }}</p>
+              }
+            </form>
+          </section>
+
+          <section class="feature-panel" style="padding: 20px;">
+            <h3>Images</h3>
+            @for (image of existingProduct.value()?.images; track image.url) {
+              <div style="padding: 10px 0; border-bottom: 1px solid var(--beauty-border);">{{ image.url }}</div>
+            }
+            <div style="display: flex; gap: 8px; margin-top: 16px;">
+              <button
+                type="button"
+                class="beauty-btn"
+                [class.beauty-btn--primary]="imageMode() === 'attach'"
+                [class.beauty-btn--secondary]="imageMode() === 'url'"
+                (click)="setImageMode('attach')"
+              >
+                Attach
+              </button>
+              <button
+                type="button"
+                class="beauty-btn"
+                [class.beauty-btn--primary]="imageMode() === 'url'"
+                [class.beauty-btn--secondary]="imageMode() === 'attach'"
+                (click)="setImageMode('url')"
+              >
+                Paste URL
+              </button>
+            </div>
+            <form [formGroup]="imageForm" (ngSubmit)="onAddImage()" class="form-grid" style="margin-top: 12px; grid-template-columns: 1fr auto; align-items: end;">
+              @if (imageMode() === 'attach') {
+                <div class="field">
+                  <input type="file" accept="image/*" (change)="onImageFileSelected($event)" />
+                  @if (imageFileName(); as name) {
+                    <small style="color: var(--beauty-text-secondary);">{{ name }}</small>
+                  }
+                </div>
+              } @else {
+                <div class="field"><input formControlName="url" placeholder="https://example.com/image.jpg" /></div>
+              }
+              <button class="beauty-btn beauty-btn--primary" type="submit" [disabled]="imageForm.invalid">Add image</button>
+              @if (imageError(); as err) {
+                <p role="alert" style="grid-column: 1 / -1;">{{ err }}</p>
+              }
+            </form>
+          </section>
+        </div>
       }
-
-      <button type="submit" [disabled]="form.invalid">Save</button>
-    </form>
-
-    @if (id()) {
-      <section>
-        <h2>Variants</h2>
-        @for (variant of existingProduct.value()?.variants; track variant.id) {
-          <div>{{ variant.sku }} — {{ variant.attributes[0]?.value }} — {{ variant.price }}</div>
-        }
-        <form [formGroup]="variantForm" (ngSubmit)="onAddVariant()">
-          <input formControlName="sku" placeholder="SKU" />
-          <input formControlName="price" type="number" placeholder="Price" />
-          <input formControlName="attributeName" placeholder="Attribute name (e.g. Shade)" />
-          <input formControlName="attributeValue" placeholder="Attribute value (e.g. Rosy Pink)" />
-          <input formControlName="initialStock" type="number" placeholder="Initial stock" />
-          @if (variantError(); as err) {
-            <p role="alert">{{ err }}</p>
-          }
-          <button type="submit" [disabled]="variantForm.invalid">Add variant</button>
-        </form>
-      </section>
-
-      <section>
-        <h2>Images</h2>
-        @for (image of existingProduct.value()?.images; track image.url) {
-          <div>{{ image.url }}</div>
-        }
-        <form [formGroup]="imageForm" (ngSubmit)="onAddImage()">
-          <input formControlName="url" placeholder="Image URL" />
-          <button type="submit" [disabled]="imageForm.invalid">Add image</button>
-        </form>
-      </section>
-    }
+    </section>
   `,
 })
 export class ProductFormComponent {
@@ -115,9 +142,16 @@ export class ProductFormComponent {
   });
   readonly variantError = signal<string | undefined>(undefined);
 
+  // Accepts either a pasted http(s) URL or a data: URI produced by reading
+  // a locally-attached file — both are valid values for the same field.
   readonly imageForm = this.fb.nonNullable.group({
-    url: ['', [Validators.required, Validators.pattern(/^https?:\/\//)]],
+    url: ['', [Validators.required, Validators.pattern(/^(https?:\/\/|data:image\/)/)]],
   });
+
+  readonly imageMode = signal<'attach' | 'url'>('attach');
+  readonly imageFileName = signal<string | undefined>(undefined);
+  readonly imageError = signal<string | undefined>(undefined);
+  private static readonly MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
   readonly existingProduct = rxResource({
     params: () => (this.id() ? { id: this.id() as string } : undefined),
@@ -199,11 +233,45 @@ export class ProductFormComponent {
   async onAddImage() {
     const productId = this.id();
     if (!productId || this.imageForm.invalid) return;
+    this.imageError.set(undefined);
     const { url } = this.imageForm.getRawValue();
-    await new Promise((resolve, reject) =>
-      this.productsApi.addImage(productId, { url }).subscribe({ next: resolve, error: reject }),
-    );
+    try {
+      await new Promise((resolve, reject) =>
+        this.productsApi.addImage(productId, { url }).subscribe({ next: resolve, error: reject }),
+      );
+      this.imageForm.reset({ url: '' });
+      this.imageFileName.set(undefined);
+      this.existingProduct.reload();
+    } catch (err: unknown) {
+      const message = (err as { error?: { message?: string } })?.error?.message;
+      this.imageError.set(message ?? 'Could not add image. Try a smaller file or a direct URL.');
+    }
+  }
+
+  setImageMode(mode: 'attach' | 'url') {
+    this.imageMode.set(mode);
+    this.imageFileName.set(undefined);
+    this.imageError.set(undefined);
     this.imageForm.reset({ url: '' });
-    this.existingProduct.reload();
+  }
+
+  onImageFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.imageError.set(undefined);
+    if (file.size > ProductFormComponent.MAX_IMAGE_BYTES) {
+      this.imageError.set('Image is too large — please choose a file under 4MB.');
+      this.imageFileName.set(undefined);
+      input.value = '';
+      return;
+    }
+    this.imageFileName.set(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.imageForm.patchValue({ url: reader.result as string });
+      this.imageForm.controls.url.markAsTouched();
+    };
+    reader.readAsDataURL(file);
   }
 }

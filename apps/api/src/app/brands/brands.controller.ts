@@ -6,6 +6,7 @@ import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Permission, Permissions } from '../auth/permissions';
 
 @ApiTags('brands')
 @Controller('brands')
@@ -26,7 +27,8 @@ export class BrandsController {
     return this.brandsService.getBySlug(slug);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.BrandsWrite)
   @ApiBearerAuth()
   @Post()
   @ApiCreatedResponse({ type: BrandResponseDto })
@@ -34,7 +36,8 @@ export class BrandsController {
     return this.brandsService.create(dto);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.BrandsWrite)
   @ApiBearerAuth()
   @Patch(':id')
   @ApiOkResponse({ type: BrandResponseDto })
@@ -42,7 +45,8 @@ export class BrandsController {
     return this.brandsService.update(id, dto);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.BrandsWrite)
   @ApiBearerAuth()
   @Delete(':id')
   @HttpCode(204)

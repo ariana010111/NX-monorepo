@@ -6,6 +6,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Permission, Permissions } from '../auth/permissions';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -26,7 +27,8 @@ export class CategoriesController {
     return this.categoriesService.getBySlug(slug);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.CategoriesWrite)
   @ApiBearerAuth()
   @Post()
   @ApiCreatedResponse({ type: CategoryResponseDto })
@@ -34,7 +36,8 @@ export class CategoriesController {
     return this.categoriesService.create(dto);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.CategoriesWrite)
   @ApiBearerAuth()
   @Patch(':id')
   @ApiOkResponse({ type: CategoryResponseDto })
@@ -42,7 +45,8 @@ export class CategoriesController {
     return this.categoriesService.update(id, dto);
   }
 
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'STAFF')
+  @Permissions(Permission.CategoriesWrite)
   @ApiBearerAuth()
   @Delete(':id')
   @HttpCode(204)

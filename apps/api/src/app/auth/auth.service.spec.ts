@@ -48,6 +48,7 @@ describe('AuthService', () => {
         firstName: 'Jane',
         lastName: 'Doe',
         roles: ['CUSTOMER'],
+        permissions: [],
       });
 
       const result = await authService.register({
@@ -117,6 +118,7 @@ describe('AuthService', () => {
         firstName: 'A',
         lastName: 'B',
         roles: ['SUPER_ADMIN'],
+        permissions: [],
       });
 
       const result = await authService.login({ email: 'user@example.com', password: 'correct-password' });
@@ -134,7 +136,7 @@ describe('AuthService', () => {
 
     it('rotates the token: revokes the old one and issues a new one', async () => {
       refreshTokensRepo.findValid.mockResolvedValue({ token: 'old-token', userId: 'u1', expiresAt: new Date(Date.now() + 100000) });
-      usersService.findById.mockResolvedValue({ id: 'u1', email: 'user@example.com', passwordHash: 'x', firstName: 'A', lastName: 'B', roles: ['CUSTOMER'] });
+      usersService.findById.mockResolvedValue({ id: 'u1', email: 'user@example.com', passwordHash: 'x', firstName: 'A', lastName: 'B', roles: ['CUSTOMER'], permissions: [] });
 
       const result = await authService.refresh('old-token');
 

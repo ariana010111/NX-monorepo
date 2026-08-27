@@ -1,11 +1,43 @@
-@if (authFacade.isAuthenticated()) {
-  <nav>
-    <a routerLink="/orders">Orders</a>
-    <a routerLink="/products">Products</a>
-    <a routerLink="/taxonomy">Categories &amp; Brands</a>
-    <a routerLink="/inventory">Inventory</a>
-    <a routerLink="/customers">Customers</a>
-    <button type="button" (click)="authFacade.logout()">Log out</button>
-  </nav>
-}
-<router-outlet></router-outlet>
+<div class="admin-app">
+  @if (authFacade.isAuthenticated()) {
+    <div class="admin-layout">
+      <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+          <span class="brand-mark">B</span>
+          <span>Beauty Admin</span>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Sidebar navigation">
+          @for (item of navItems; track item.label) {
+            <a [routerLink]="item.link" [class.active]="item.active">
+              <span aria-hidden="true">•</span>
+              <span>{{ item.label }}</span>
+            </a>
+          }
+          <a href="#" (click)="authFacade.logout(); $event.preventDefault()">
+            <span aria-hidden="true">↗</span>
+            <span>Log out</span>
+          </a>
+        </nav>
+      </aside>
+
+      <main class="admin-main">
+        <div class="admin-topbar">
+          <div class="admin-topbar__title">Overview</div>
+          <div class="admin-topbar__actions">
+            <label class="admin-search" aria-label="Search admin">
+              <span aria-hidden="true">⌕</span>
+              <input type="search" placeholder="Search" />
+            </label>
+            <button class="icon-button" type="button" aria-label="Notifications">🔔</button>
+            <button class="icon-button" type="button" aria-label="Profile">👤</button>
+          </div>
+        </div>
+
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  } @else {
+    <router-outlet></router-outlet>
+  }
+</div>

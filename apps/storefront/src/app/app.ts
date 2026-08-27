@@ -8,5 +8,12 @@ import { RouterModule } from '@angular/router';
   styleUrl: './app.scss',
 })
 export class App {
-  protected title = 'storefront';
+  protected readonly navItems = [
+    { label: 'Shop', link: '/' },
+    { label: 'New In', link: '/' },
+    { label: 'Best Sellers', link: '/' },
+    { label: 'Brands', link: '/' },
+  ];
+
+  protected readonly categories = ['Skincare', 'Makeup', 'Haircare', 'Fragrance', 'Body Care', 'Tools'];
 }

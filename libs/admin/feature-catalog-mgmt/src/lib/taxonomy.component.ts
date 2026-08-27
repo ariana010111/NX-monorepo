@@ -7,50 +7,46 @@ import { TaxonomyFacade } from './taxonomy.facade';
   standalone: true,
   imports: [ReactiveFormsModule],
   template: `
-    <h1>Categories & Brands</h1>
+    <section class="admin-panel">
+      <div class="beauty-section-head">
+        <h2>Categories & Brands</h2>
+      </div>
 
-    <section>
-      <h2>Categories</h2>
-      <ul>
-        @for (category of facade.categories(); track category.id) {
-          <li>
-            {{ category.name }}
-            <button type="button" (click)="facade.deleteCategory(category.id)">Delete</button>
-            @if (category.children?.length) {
-              <ul>
-                @for (child of category.children; track child.id) {
-                  <li>
-                    {{ child.name }}
-                    <button type="button" (click)="facade.deleteCategory(child.id)">Delete</button>
-                  </li>
-                }
-              </ul>
+      <div class="form-grid" style="margin-bottom: 24px;">
+        <section class="feature-panel" style="padding: 20px;">
+          <h3>Categories</h3>
+          <ul>
+            @for (category of facade.categories(); track category.id) {
+              <li style="display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--beauty-border);">
+                <span>{{ category.name }}</span>
+                <button class="beauty-btn beauty-btn--secondary" type="button" (click)="facade.deleteCategory(category.id)">Delete</button>
+              </li>
             }
-          </li>
-        }
-      </ul>
-      <form [formGroup]="categoryForm" (ngSubmit)="onCreateCategory()">
-        <input formControlName="name" placeholder="Category name" />
-        <input formControlName="slug" placeholder="category-slug" />
-        <button type="submit" [disabled]="categoryForm.invalid">Add category</button>
-      </form>
-    </section>
+          </ul>
+          <form [formGroup]="categoryForm" (ngSubmit)="onCreateCategory()" class="form-grid" style="margin-top: 16px; grid-template-columns: 1fr 1fr auto; align-items: end;">
+            <div class="field"><input formControlName="name" placeholder="Category name" /></div>
+            <div class="field"><input formControlName="slug" placeholder="category-slug" /></div>
+            <button class="beauty-btn beauty-btn--primary" type="submit" [disabled]="categoryForm.invalid">Add</button>
+          </form>
+        </section>
 
-    <section>
-      <h2>Brands</h2>
-      <ul>
-        @for (brand of facade.brands(); track brand.id) {
-          <li>
-            {{ brand.name }}
-            <button type="button" (click)="facade.deleteBrand(brand.id)">Delete</button>
-          </li>
-        }
-      </ul>
-      <form [formGroup]="brandForm" (ngSubmit)="onCreateBrand()">
-        <input formControlName="name" placeholder="Brand name" />
-        <input formControlName="slug" placeholder="brand-slug" />
-        <button type="submit" [disabled]="brandForm.invalid">Add brand</button>
-      </form>
+        <section class="feature-panel" style="padding: 20px;">
+          <h3>Brands</h3>
+          <ul>
+            @for (brand of facade.brands(); track brand.id) {
+              <li style="display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--beauty-border);">
+                <span>{{ brand.name }}</span>
+                <button class="beauty-btn beauty-btn--secondary" type="button" (click)="facade.deleteBrand(brand.id)">Delete</button>
+              </li>
+            }
+          </ul>
+          <form [formGroup]="brandForm" (ngSubmit)="onCreateBrand()" class="form-grid" style="margin-top: 16px; grid-template-columns: 1fr 1fr auto; align-items: end;">
+            <div class="field"><input formControlName="name" placeholder="Brand name" /></div>
+            <div class="field"><input formControlName="slug" placeholder="brand-slug" /></div>
+            <button class="beauty-btn beauty-btn--primary" type="submit" [disabled]="brandForm.invalid">Add</button>
+          </form>
+        </section>
+      </div>
     </section>
   `,
 })

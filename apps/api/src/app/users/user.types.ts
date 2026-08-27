@@ -9,4 +9,5 @@ export interface UserRecord {
   firstName: string;
   lastName: string;
   roles: string[]; // role names, e.g. ['CUSTOMER'], ['SUPER_ADMIN']
+  permissions?: string[];
 }
