@@ -1,12 +1,14 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { AuthFacade } from '@beauty-platform-validated/storefront-data-access';
 import { CheckoutFacade } from './checkout.facade';
 
 @Component({
   selector: 'beauty-checkout',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, RouterLink],
   template: `
     <div class="page-shell">
       @if (facade.placedOrder(); as order) {
@@ -24,6 +26,20 @@ import { CheckoutFacade } from './checkout.facade';
           <div class="feature-panel checkout-main-panel">
             <div class="beauty-subtle">Secure checkout</div>
             <h1>Checkout</h1>
+
+            @if (authFacade.isAuthenticated()) {
+              <div class="checkout-auth-banner checkout-auth-banner--logged-in">
+                <span>Checking out as <strong>{{ authFacade.user()?.firstName }} {{ authFacade.user()?.lastName }}</strong> ({{ authFacade.user()?.email }})</span>
+              </div>
+            } @else {
+              <div class="checkout-auth-banner checkout-auth-banner--guest">
+                <span>Already have an account?</span>
+                <div class="checkout-auth-banner__actions">
+                  <a [routerLink]="['/login']" [queryParams]="{ returnUrl: '/checkout' }" class="beauty-btn beauty-btn--secondary">Sign In</a>
+                  <a [routerLink]="['/register']" [queryParams]="{ returnUrl: '/checkout' }" class="beauty-btn beauty-btn--secondary">Create Account</a>
+                </div>
+              </div>
+            }
 
             <div class="checkout-item-list">
               @for (line of facade.cart.items(); track line.variantId) {
@@ -145,6 +161,34 @@ import { CheckoutFacade } from './checkout.facade';
       flex-direction: column;
       gap: 12px;
       margin: 24px 0;
+    }
+
+    .checkout-auth-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      padding: 14px 18px;
+      border-radius: var(--beauty-radius-md);
+      font-size: 14px;
+    }
+
+    .checkout-auth-banner--guest {
+      background: var(--beauty-bg-soft);
+      border: 1px dashed var(--beauty-border);
+      color: var(--beauty-text);
+    }
+
+    .checkout-auth-banner--logged-in {
+      background: rgba(45, 125, 92, 0.08);
+      border: 1px solid rgba(45, 125, 92, 0.2);
+      color: var(--beauty-success);
+    }
+
+    .checkout-auth-banner__actions {
+      display: flex;
+      gap: 8px;
     }
 
     .checkout-item-card {
@@ -318,6 +362,7 @@ import { CheckoutFacade } from './checkout.facade';
 })
 export class CheckoutComponent {
   readonly facade = inject(CheckoutFacade);
+  readonly authFacade = inject(AuthFacade);
   private readonly fb = inject(FormBuilder);
 
   readonly form = this.fb.nonNullable.group({
@@ -330,6 +375,20 @@ export class CheckoutComponent {
       country: ['', Validators.required],
     }),
   });
+
+  constructor() {
+    effect(() => {
+      const user = this.authFacade.user();
+      if (user) {
+        if (!this.form.controls.email.value) {
+          this.form.controls.email.setValue(user.email);
+        }
+        if (!this.form.controls.shippingAddress.controls.fullName.value && (user.firstName || user.lastName)) {
+          this.form.controls.shippingAddress.controls.fullName.setValue(`${user.firstName} ${user.lastName}`.trim());
+        }
+      }
+    });
+  }
 
   onApplyCoupon(code: string) {
     this.facade.applyCoupon(code);
