@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, effect, signal } from '@angular/core';
 
 export interface CartLine {
   variantId: string;
@@ -10,6 +10,8 @@ export interface CartLine {
   brand?: string;
 }
 
+const CART_STORAGE_KEY = 'beauty_platform_cart_items';
+
 /**
  * Genuinely app-wide state — needed by both feature-catalog (add to bag)
  * and feature-cart (view bag), which is exactly the case that justifies
@@ -19,11 +21,18 @@ export interface CartLine {
  */
 @Injectable({ providedIn: 'root' })
 export class CartFacade {
-  private readonly _items = signal<CartLine[]>([]);
+  private readonly _items = signal<CartLine[]>(this.readInitialCart());
   readonly items = this._items.asReadonly();
 
   readonly itemCount = computed(() => this._items().reduce((sum, i) => sum + i.quantity, 0));
   readonly subtotal = computed(() => this._items().reduce((sum, i) => sum + i.unitPrice * i.quantity, 0));
+
+  constructor() {
+    effect(() => {
+      const items = this._items();
+      this.persistCart(items);
+    });
+  }
 
   addItem(line: CartLine) {
     this._items.update((items) => {
@@ -60,5 +69,24 @@ export class CartFacade {
 
   clear() {
     this._items.set([]);
+  }
+
+  private readInitialCart(): CartLine[] {
+    if (typeof localStorage === 'undefined') return [];
+    try {
+      const raw = localStorage.getItem(CART_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private persistCart(items: CartLine[]) {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    } catch {
+      // Ignore quota errors in constrained environments
+    }
   }
 }

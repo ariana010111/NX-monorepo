@@ -5,8 +5,13 @@ describe('CartFacade', () => {
   let facade: CartFacade;
 
   beforeEach(() => {
+    localStorage.clear();
     TestBed.configureTestingModule({ providers: [CartFacade] });
     facade = TestBed.inject(CartFacade);
+  });
+
+  afterEach(() => {
+    localStorage.clear();
   });
 
   it('starts empty', () => {
@@ -31,5 +36,17 @@ describe('CartFacade', () => {
     facade.addItem({ variantId: 'v1', name: 'Lipstick', shade: 'Rosy Pink', quantity: 1, unitPrice: 24 });
     facade.removeItem('v1');
     expect(facade.items().length).toBe(0);
+  });
+
+  it('restores persisted items from localStorage upon instantiation', () => {
+    localStorage.setItem(
+      'beauty_platform_cart_items',
+      JSON.stringify([{ variantId: 'v2', name: 'Foundation', shade: 'Fair', quantity: 1, unitPrice: 38 }]),
+    );
+
+    const freshFacade = TestBed.runInInjectionContext(() => new CartFacade());
+    expect(freshFacade.items().length).toBe(1);
+    expect(freshFacade.itemCount()).toBe(1);
+    expect(freshFacade.subtotal()).toBe(38);
   });
 });
