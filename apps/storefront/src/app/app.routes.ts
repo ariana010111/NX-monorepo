@@ -10,6 +10,7 @@ import { CheckoutFacade, CheckoutComponent } from '@beauty-platform-validated/st
 import {
   LoginComponent,
   RegisterComponent,
+  ForgotPasswordComponent,
   OrderHistoryComponent,
   OrderDetailComponent,
   AccountProfileComponent,
@@ -27,6 +28,7 @@ export const appRoutes: Route[] = [
   { path: 'checkout', component: CheckoutComponent, providers: [CheckoutFacade] },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'account', component: AccountProfileComponent, canActivate: [authGuard] },
   { path: 'orders', component: OrderHistoryComponent, canActivate: [authGuard] },
   { path: 'orders/:id', component: OrderDetailComponent, canActivate: [authGuard] },
