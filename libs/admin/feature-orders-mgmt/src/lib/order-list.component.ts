@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { OrderListFacade } from './order-list.facade';
 import { UpdateOrderStatusDtoStatus } from '@beauty-platform-validated/api-client';
 
@@ -8,7 +9,7 @@ const STATUS_OPTIONS = Object.values(UpdateOrderStatusDtoStatus);
 @Component({
   selector: 'beauty-admin-order-list',
   standalone: true,
-  imports: [DecimalPipe, DatePipe],
+  imports: [DecimalPipe, DatePipe, RouterLink],
   template: `
     <section class="admin-panel">
       <div class="beauty-section-head">
@@ -26,7 +27,7 @@ const STATUS_OPTIONS = Object.values(UpdateOrderStatusDtoStatus);
             <tbody>
               @for (order of facade.orders(); track order.id) {
                 <tr>
-                  <td>{{ order.orderNumber }}</td>
+                  <td><a [routerLink]="['/orders', order.id]">{{ order.orderNumber }}</a></td>
                   <td>{{ order.email }}</td>
                   <td>{{ order.grandTotal | number: '1.2-2' }}</td>
                   <td>

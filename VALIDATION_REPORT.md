@@ -811,3 +811,82 @@ there was never a `/cart` resource in the schema or API, by original
 design (matches the very first architecture conversation, where cart was
 scoped as client-only state backed by order creation at checkout, not a
 persisted server-side cart). Worth knowing, not a bug.
+
+
+---
+
+## Final runner verification — 2026-08-28
+
+Independent end-to-end re-run against the current worktree (30 uncommitted files,
+including the `openapi.json`/`api-client.ts` additions, design-system styling, and
+admin/storefront app-shell changes from the latest session). Nothing was reverted.
+
+### 1. Individual project targets — all PASS (observed output, not assumed)
+
+| Project | lint | test | build | Notes |
+|---|---|---|---|---|
+| api | ✅ | ✅ 64 tests, 9 suites | ✅ webpack compiled | 0 errors |
+| storefront | ✅ | ✅ 1 test | ✅ 4 prerendered routes | budget warning on nx-welcome (minor) |
+| admin | ✅ | ✅ 1 test | ✅ | — |
+| storefront-data-access | — | ✅ 18 tests, 5 files | — | — |
+| storefront-feature-cart | — | ✅ 6 tests, 2 files | — | — |
+| shared-api-client | — | ✅ | — | — |
+| shared-ui | — | ✅ | — | — |
+| shared-util | — | ✅ | — | — |
+
+Libs (`shared-*`, `storefront-data-access`, `storefront-feature-cart`) have no
+standalone `build` target — they are Angular path-alias libs compiled
+transitively by the app builds above. All three apps built successfully, which
+is the correct build proof for the libs.
+
+`npx nx run-many -t lint test build --projects=...` returned "No tasks were run"
+because all tasks had been executed in the same session and Nx served them from
+cache (100 % hits). Individual project runs confirmed 0 % cache on the first call
+for each — the caching behaviour is correct and expected, not an error.
+
+### 2. OpenAPI contract pipeline — PASS, end to end
+
+- `generate-openapi-spec.ts` ran successfully (cmd.exe invocation required on
+  Windows PowerShell — see README for the exact form; the `npx ts-node -O '...'`
+  form fails silently on PowerShell due to single-quote argument stripping).
+- `orval v8.24.0` regenerated `api-client.ts` without errors: "ready to use".
+- The current `openapi.json` exposes 38 route paths covering all controllers
+  (auth, products, categories, brands, coupons, inventory, orders, payments,
+  reviews, users, profile, analytics, visits, admin analytics, admin customers).
+- Storefront and admin build successfully against the freshly-generated client.
+
+### 3. Prisma / MySQL — CONFIRMED ACCESSIBLE (blocker from earlier sessions resolved)
+
+- `curl`/TCP probe: **port 3306 is open** at `localhost:3306`.
+- `npx prisma validate` → `The schema at prisma/schema.prisma is valid 🚀`
+- `npx prisma generate` → **PASS**: `Generated Prisma Client (v7.9.1) to
+  .\node_modules\@prisma\client in 473ms`. This resolves the sandbox-egress
+  blocker documented in sections 1–4 of this report.
+- `npx prisma db push` → **blocked by Prisma's AI-agent safety guardrail**
+  (`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` required). This is a Prisma
+  v7 protection for destructive schema operations invoked by AI agents — it is
+  not a connectivity or schema error. Human `npx prisma db push
+  --schema=prisma/schema.prisma --accept-data-loss` will work once you explicitly
+  confirm consent. Seed has not been run; database tables have not been pushed
+  in this session.
+- `@prisma/adapter-mariadb` confirmed installed (`node -e "require(...)"` → OK).
+- README updated with: the `--accept-data-loss` flag, `migrate dev` alternative,
+  adapter-mariadb note, default admin credentials warning, and the Prisma
+  AI-agent consent guardrail explanation.
+
+### 4. Route inventory — 38 paths, all controllers present
+
+Controllers confirmed in source: `app`, `analytics`, `auth` (7 endpoints),
+`brands`, `products` (6 endpoints incl. variants+images), `categories`,
+`coupons`, `inventory`, `orders`, `payments`, `profile`, `reviews`, `users`,
+`visits`. All have matching entries in the live `openapi.json`.
+
+### 5. Remaining gaps (unchanged from prior sessions)
+
+- `db push` / `migrate dev` not run this session (needs user consent for the
+  destructive push step) — run locally after reading the updated README.
+- `npx ts-node prisma/seed.ts` not run — depends on schema being pushed first.
+- No refresh-token flow smoke test in this session.
+- `ProductListFacade`, `TaxonomyFacade`, `InventoryFacade` (admin), and all
+  component-level rendering/template tests remain untested.
+- CI pipeline not configured.

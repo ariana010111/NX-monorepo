@@ -7,7 +7,13 @@ import {
   WishlistPageComponent,
 } from '@beauty-platform-validated/storefront-feature-catalog';
 import { CheckoutFacade, CheckoutComponent } from '@beauty-platform-validated/storefront-feature-checkout';
-import { LoginComponent, RegisterComponent, OrderHistoryComponent } from '@beauty-platform-validated/storefront-feature-account';
+import {
+  LoginComponent,
+  RegisterComponent,
+  OrderHistoryComponent,
+  OrderDetailComponent,
+  AccountProfileComponent,
+} from '@beauty-platform-validated/storefront-feature-account';
 import { authGuard } from './core/auth.guard';
 
 export const appRoutes: Route[] = [
@@ -21,5 +27,7 @@ export const appRoutes: Route[] = [
   { path: 'checkout', component: CheckoutComponent, providers: [CheckoutFacade] },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'account', component: AccountProfileComponent, canActivate: [authGuard] },
   { path: 'orders', component: OrderHistoryComponent, canActivate: [authGuard] },
+  { path: 'orders/:id', component: OrderDetailComponent, canActivate: [authGuard] },
 ];

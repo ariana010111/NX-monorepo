@@ -2,6 +2,7 @@ import { Component, computed, inject, signal, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ProductsApiService, CartFacade, WishlistFacade, ReviewsApiService, AuthFacade } from '@beauty-platform-validated/storefront-data-access';
 import type { ProductResponseDto } from '@beauty-platform-validated/api-client';
 
@@ -18,7 +19,7 @@ import type { ProductResponseDto } from '@beauty-platform-validated/api-client';
 @Component({
   selector: 'beauty-product-detail',
   standalone: true,
-  imports: [DecimalPipe, ReactiveFormsModule],
+  imports: [DecimalPipe, ReactiveFormsModule, RouterLink],
   template: `
     @if (productResource.value(); as product) {
       <div class="page-shell">
@@ -72,8 +73,14 @@ import type { ProductResponseDto } from '@beauty-platform-validated/api-client';
             }
 
             <div class="product-actions">
+              <div class="beauty-quantity" aria-label="Quantity selector">
+                <button type="button" (click)="decrementQuantity()" aria-label="Decrease quantity">−</button>
+                <span>{{ quantity() }}</span>
+                <button type="button" (click)="incrementQuantity()" aria-label="Increase quantity">+</button>
+              </div>
+
               @if (selectedVariant(); as variant) {
-                <button class="beauty-btn beauty-btn--primary" type="button" (click)="addToCart()">Add to Bag</button>
+                <button class="beauty-btn beauty-btn--primary" type="button" (click)="addToCart()">Add to Cart</button>
               } @else {
                 <button class="beauty-btn beauty-btn--primary" type="button" disabled>Select options</button>
               }
@@ -81,6 +88,13 @@ import type { ProductResponseDto } from '@beauty-platform-validated/api-client';
                 {{ isWishlisted() ? '♥ Saved' : '♡ Save' }}
               </button>
             </div>
+
+            @if (addSuccess()) {
+              <div class="cart-success" role="status">
+                <span>✓ Added to your cart</span>
+                <a routerLink="/cart">View Cart</a>
+              </div>
+            }
           </div>
         </div>
 
@@ -153,6 +167,8 @@ export class ProductDetailComponent {
   readonly reviewSubmitted = signal(false);
 
   readonly selectedValues = signal<Record<string, string>>({});
+  readonly quantity = signal(1);
+  readonly addSuccess = signal(false);
 
   readonly attributeGroups = computed(() => {
     const product = this.productResource.value();
@@ -173,6 +189,19 @@ export class ProductDetailComponent {
   readonly selectedVariant = computed(() => {
     const product = this.productResource.value();
     if (!product) return undefined;
+
+    if (product.variants.length === 0) {
+      return {
+        id: product.id,
+        sku: 'DEFAULT',
+        price: product.fromPrice ?? 0,
+        compareAtPrice: undefined,
+        isActive: true,
+        attributes: [],
+        imageUrl: product.images[0]?.url,
+      };
+    }
+
     const selected = this.selectedValues();
     return product.variants.find((variant) =>
       variant.attributes.every((attr) => selected[attr.attributeName] === attr.value),
@@ -189,6 +218,16 @@ export class ProductDetailComponent {
     this.selectedValues.update((current) => ({ ...current, [attributeName]: value }));
   }
 
+  incrementQuantity() {
+    this.quantity.update((value) => Math.max(1, value + 1));
+    this.addSuccess.set(false);
+  }
+
+  decrementQuantity() {
+    this.quantity.update((value) => Math.max(1, value - 1));
+    this.addSuccess.set(false);
+  }
+
   onToggleWishlist(product: ProductResponseDto) {
     this.wishlistFacade.toggle({
       productId: product.id,
@@ -203,13 +242,17 @@ export class ProductDetailComponent {
     const product = this.productResource.value();
     const variant = this.selectedVariant();
     if (!product || !variant) return;
+
     this.cartFacade.addItem({
       variantId: variant.id,
       name: product.name,
-      shade: variant.attributes.map((a) => a.value).join(' / '),
-      quantity: 1,
+      shade: variant.attributes.length ? variant.attributes.map((a) => a.value).join(' / ') : 'Default',
+      quantity: this.quantity(),
       unitPrice: variant.price,
+      imageUrl: product.images[0]?.url,
+      brand: product.brandName,
     });
+    this.addSuccess.set(true);
   }
 
   async onSubmitReview(productId: string) {

@@ -17,12 +17,12 @@ import { CreateManagedUserDtoRole } from '@beauty-platform-validated/api-client'
       </div>
 
       <form [formGroup]="createForm" (ngSubmit)="createUser()" class="form-grid">
-        <div class="field"><label>Email</label><input type="email" formControlName="email" /></div>
-        <div class="field"><label>Password</label><input type="password" formControlName="password" /></div>
-        <div class="field"><label>First name</label><input formControlName="firstName" /></div>
-        <div class="field"><label>Last name</label><input formControlName="lastName" /></div>
-        <div class="field" style="grid-column: 1 / -1;"><label>Role</label>
-          <select formControlName="role">
+        <div class="field"><label for="ua-email">Email</label><input id="ua-email" type="email" formControlName="email" /></div>
+        <div class="field"><label for="ua-password">Password</label><input id="ua-password" type="password" formControlName="password" /></div>
+        <div class="field"><label for="ua-firstName">First name</label><input id="ua-firstName" formControlName="firstName" /></div>
+        <div class="field"><label for="ua-lastName">Last name</label><input id="ua-lastName" formControlName="lastName" /></div>
+        <div class="field" style="grid-column: 1 / -1;"><label for="ua-role">Role</label>
+          <select id="ua-role" formControlName="role">
             @for (role of availableRoles; track role) { <option [value]="role">{{ role }}</option> }
           </select>
         </div>

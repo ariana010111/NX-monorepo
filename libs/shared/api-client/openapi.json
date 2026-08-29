@@ -15,6 +15,20 @@
         ]
       }
     },
+    "/analytics": {
+      "get": {
+        "operationId": "AppController_analytics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
     "/auth/register": {
       "post": {
         "operationId": "AuthController_register",
@@ -1405,6 +1419,244 @@
           "payments"
         ]
       }
+    },
+    "/profile/me": {
+      "get": {
+        "operationId": "ProfileController_getMyProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProfileResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the authenticated customer profile with order history and lifetime stats",
+        "tags": [
+          "profile"
+        ]
+      }
+    },
+    "/admin/customers": {
+      "get": {
+        "operationId": "ProfileController_listCustomers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminCustomerSummaryDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Admin: list all customers with lifetime stats",
+        "tags": [
+          "profile"
+        ]
+      }
+    },
+    "/admin/customers/{id}": {
+      "get": {
+        "operationId": "ProfileController_getCustomerById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProfileResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Admin: get customer detail with full order history",
+        "tags": [
+          "profile"
+        ]
+      }
+    },
+    "/admin/analytics/trends": {
+      "get": {
+        "operationId": "AnalyticsController_getTrends",
+        "parameters": [
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start date ISO string (defaults to 30 days ago)",
+            "schema": {
+              "example": "2026-08-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End date ISO string (defaults to today)",
+            "schema": {
+              "example": "2026-08-28",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsTrendsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Admin: daily visits, order count, and revenue for a date range (default last 30 days)",
+        "tags": [
+          "admin-analytics"
+        ]
+      }
+    },
+    "/admin/analytics/top-products": {
+      "get": {
+        "operationId": "AnalyticsController_getTopProducts",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Max products to return (1-100, default 10)",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopProductsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Admin: top products ranked by order count and revenue",
+        "tags": [
+          "admin-analytics"
+        ]
+      }
+    },
+    "/admin/analytics/customer-segments": {
+      "get": {
+        "operationId": "AnalyticsController_getCustomerSegments",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerSegmentsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Admin: new-vs-returning customer counts",
+        "tags": [
+          "admin-analytics"
+        ]
+      }
+    },
+    "/visits": {
+      "post": {
+        "operationId": "VisitsController_record",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordVisitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Record a first-party storefront page visit",
+        "tags": [
+          "visits"
+        ]
+      }
     }
   },
   "info": {
@@ -2333,6 +2585,266 @@
           "amount",
           "currency",
           "status",
+          "createdAt"
+        ]
+      },
+      "CustomerProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "orderCount": {
+            "type": "number"
+          },
+          "lifetimeSpend": {
+            "type": "number"
+          },
+          "lastOrderAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderResponseDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "firstName",
+          "lastName",
+          "createdAt",
+          "orderCount",
+          "lifetimeSpend",
+          "orders"
+        ]
+      },
+      "AdminCustomerSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "orderCount": {
+            "type": "number"
+          },
+          "lifetimeSpend": {
+            "type": "number"
+          },
+          "lastOrderAt": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "firstName",
+          "lastName",
+          "createdAt",
+          "orderCount",
+          "lifetimeSpend"
+        ]
+      },
+      "DailyTrendPointDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-08-01"
+          },
+          "visits": {
+            "type": "number"
+          },
+          "orders": {
+            "type": "number"
+          },
+          "revenue": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "visits",
+          "orders",
+          "revenue"
+        ]
+      },
+      "AnalyticsTrendsDto": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyTrendPointDto"
+            }
+          },
+          "totalVisits": {
+            "type": "number"
+          },
+          "totalOrders": {
+            "type": "number"
+          },
+          "totalRevenue": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "days",
+          "totalVisits",
+          "totalOrders",
+          "totalRevenue"
+        ]
+      },
+      "TopProductDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "totalOrders": {
+            "type": "number"
+          },
+          "totalRevenue": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "productId",
+          "productName",
+          "totalOrders",
+          "totalRevenue"
+        ]
+      },
+      "TopProductsDto": {
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TopProductDto"
+            }
+          }
+        },
+        "required": [
+          "products"
+        ]
+      },
+      "CustomerSegmentsDto": {
+        "type": "object",
+        "properties": {
+          "newCustomers": {
+            "type": "number"
+          },
+          "returningCustomers": {
+            "type": "number"
+          },
+          "customersWithOrders": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "newCustomers",
+          "returningCustomers",
+          "customersWithOrders"
+        ]
+      },
+      "RecordVisitDto": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "example": "/products/rose-serum"
+          },
+          "sessionId": {
+            "type": "string",
+            "example": "sess_abc123"
+          },
+          "productId": {
+            "type": "string",
+            "example": "prod_xyz"
+          },
+          "referrer": {
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "VisitResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true
+          },
+          "sessionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "productId": {
+            "type": "string",
+            "nullable": true
+          },
+          "path": {
+            "type": "string"
+          },
+          "referrer": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "path",
           "createdAt"
         ]
       }

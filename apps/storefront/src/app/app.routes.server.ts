@@ -25,8 +25,20 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server,
   },
   {
+    // Account profile is auth-gated and personalized — prerendering it
+    // would bake in the unauthenticated shell for every user.
+    path: 'account',
+    renderMode: RenderMode.Server,
+  },
+  {
     // Order history is personalized, auth-gated data — same reasoning.
     path: 'orders',
+    renderMode: RenderMode.Server,
+  },
+  {
+    // A customer order detail page is personalized and requires a live route param,
+    // so it must be server-rendered rather than prerendered.
+    path: 'orders/:id',
     renderMode: RenderMode.Server,
   },
   {

@@ -12,12 +12,11 @@ export class App {
   protected title = 'admin';
   protected readonly authFacade = inject(AuthFacade);
   protected readonly navItems = [
-    { label: 'Dashboard', link: '/orders', active: true },
-    { label: 'Products', link: '/products' },
-    { label: 'Categories', link: '/taxonomy' },
     { label: 'Orders', link: '/orders' },
-    { label: 'Customers', link: '/users' },
+    { label: 'Products', link: '/products' },
+    { label: 'Taxonomy', link: '/taxonomy' },
     { label: 'Inventory', link: '/inventory' },
-    { label: 'Settings', link: '/users' },
+    { label: 'Customers', link: '/users' },
+    { label: 'Analytics', link: '/analytics' },
   ];
 }

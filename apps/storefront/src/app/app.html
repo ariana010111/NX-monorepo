@@ -17,10 +17,67 @@
             <a [routerLink]="item.link">{{ item.label }}</a>
           }
         </nav>
-        <a class="storefront-cta" routerLink="/login">Sign in</a>
-        <a class="storefront-cta" routerLink="/cart">Bag</a>
+        @if (authFacade.isAuthenticated()) {
+          <div class="storefront-account-menu-wrap">
+            <button class="storefront-cta storefront-cta--account" type="button" (click)="toggleAccountMenu()">
+              Hi, {{ customerName() }} ▾
+            </button>
+            @if (isAccountMenuOpen()) {
+              <div class="account-menu-dropdown" aria-label="Account navigation">
+                <div class="account-menu-dropdown__header">
+                  <strong>Welcome back</strong>
+                  <span class="beauty-subtle">{{ customerName() }}</span>
+                </div>
+                <div class="account-menu-dropdown__links">
+                  <a routerLink="/account" (click)="closeAccountMenu()">My Account</a>
+                  <a routerLink="/orders" (click)="closeAccountMenu()">My Orders</a>
+                  <a routerLink="/wishlist" (click)="closeAccountMenu()">Wishlist</a>
+                  <button type="button" class="account-menu-dropdown__signout" (click)="onSignOut()">
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <a class="storefront-cta" routerLink="/login">Sign In</a>
+        }
+        <button class="storefront-cta storefront-cta--cart" type="button" (click)="toggleCart()">
+          Cart ({{ cart.itemCount() }})
+        </button>
       </div>
     </div>
+
+    @if (isCartOpen()) {
+      <div class="mini-cart" aria-live="polite">
+        <div class="mini-cart__header">
+          <strong>Your Cart</strong>
+          <button type="button" class="mini-cart__close" (click)="closeCart()">Close</button>
+        </div>
+
+        @if (cart.items().length === 0) {
+          <p class="mini-cart__empty">Your cart is empty.</p>
+        } @else {
+          @for (line of cartDisplayItems(); track line.variantId) {
+            <div class="mini-cart__item">
+              <div>
+                <strong>{{ line.name }}</strong>
+                <div class="beauty-subtle">Qty {{ line.quantity }}</div>
+              </div>
+              <span>{{ (line.unitPrice * line.quantity) | currency }}</span>
+            </div>
+          }
+          <div class="mini-cart__summary">
+            <span>Subtotal</span>
+            <strong>{{ cart.subtotal() | currency }}</strong>
+          </div>
+          <div class="mini-cart__actions">
+            <a routerLink="/cart" class="beauty-btn beauty-btn--secondary" (click)="closeCart()">View Cart</a>
+            <a routerLink="/checkout" class="beauty-btn beauty-btn--primary" (click)="closeCart()">Checkout</a>
+          </div>
+        }
+      </div>
+    }
 
     <nav class="storefront-subnav" aria-label="Popular categories">
       @for (category of categories; track category) {

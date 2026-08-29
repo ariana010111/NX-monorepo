@@ -356,6 +356,88 @@ export interface PaymentResponseDto {
   createdAt: string;
 }
 
+export interface CustomerProfileResponseDto {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  /** @nullable */
+  phone?: string | null;
+  createdAt: string;
+  orderCount: number;
+  lifetimeSpend: number;
+  /** @nullable */
+  lastOrderAt?: string | null;
+  orders: OrderResponseDto[];
+}
+
+export interface AdminCustomerSummaryDto {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  /** @nullable */
+  phone?: string | null;
+  createdAt: string;
+  orderCount: number;
+  lifetimeSpend: number;
+  /** @nullable */
+  lastOrderAt?: string | null;
+}
+
+export interface DailyTrendPointDto {
+  date: string;
+  visits: number;
+  orders: number;
+  revenue: number;
+}
+
+export interface AnalyticsTrendsDto {
+  days: DailyTrendPointDto[];
+  totalVisits: number;
+  totalOrders: number;
+  totalRevenue: number;
+}
+
+export interface TopProductDto {
+  productId: string;
+  productName: string;
+  totalOrders: number;
+  totalRevenue: number;
+}
+
+export interface TopProductsDto {
+  products: TopProductDto[];
+}
+
+export interface CustomerSegmentsDto {
+  newCustomers: number;
+  returningCustomers: number;
+  customersWithOrders: number;
+}
+
+export interface RecordVisitDto {
+  path: string;
+  sessionId?: string;
+  productId?: string;
+  referrer?: string;
+  userAgent?: string;
+}
+
+export interface VisitResponseDto {
+  id: string;
+  /** @nullable */
+  userId?: string | null;
+  /** @nullable */
+  sessionId?: string | null;
+  /** @nullable */
+  productId?: string | null;
+  path: string;
+  /** @nullable */
+  referrer?: string | null;
+  createdAt: string;
+}
+
 export type ProductsControllerListParams = {
 page?: number;
 pageSize?: number;
@@ -365,6 +447,24 @@ brand?: string;
 
 export type CouponsControllerValidateParams = {
 subtotal: number;
+};
+
+export type AnalyticsControllerGetTrendsParams = {
+/**
+ * Start date ISO string (defaults to 30 days ago)
+ */
+from?: string;
+/**
+ * End date ISO string (defaults to today)
+ */
+to?: string;
+};
+
+export type AnalyticsControllerGetTopProductsParams = {
+/**
+ * Max products to return (1-100, default 10)
+ */
+limit?: number;
 };
 
 interface HttpClientOptions {
@@ -500,6 +600,37 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+ appControllerAnalytics<TData = void>( options?: HttpClientBodyOptions): Observable<TData>;
+ appControllerAnalytics<TData = void>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ appControllerAnalytics<TData = void>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  appControllerAnalytics<TData = void>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/analytics`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/analytics`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/analytics`,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }
@@ -1905,6 +2036,251 @@ export class BeautyPlatformAPIService {
 
     return this.http.get<TData>(
       `/payments/orders/${orderId}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+/**
+ * @summary Get the authenticated customer profile with order history and lifetime stats
+ */
+ profileControllerGetMyProfile<TData = CustomerProfileResponseDto>( options?: HttpClientBodyOptions): Observable<TData>;
+ profileControllerGetMyProfile<TData = CustomerProfileResponseDto>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ profileControllerGetMyProfile<TData = CustomerProfileResponseDto>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  profileControllerGetMyProfile<TData = CustomerProfileResponseDto>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/profile/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/profile/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/profile/me`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+/**
+ * @summary Admin: list all customers with lifetime stats
+ */
+ profileControllerListCustomers<TData = AdminCustomerSummaryDto[]>( options?: HttpClientBodyOptions): Observable<TData>;
+ profileControllerListCustomers<TData = AdminCustomerSummaryDto[]>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ profileControllerListCustomers<TData = AdminCustomerSummaryDto[]>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  profileControllerListCustomers<TData = AdminCustomerSummaryDto[]>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/admin/customers`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/admin/customers`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/admin/customers`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+/**
+ * @summary Admin: get customer detail with full order history
+ */
+ profileControllerGetCustomerById<TData = CustomerProfileResponseDto>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ profileControllerGetCustomerById<TData = CustomerProfileResponseDto>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ profileControllerGetCustomerById<TData = CustomerProfileResponseDto>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  profileControllerGetCustomerById<TData = CustomerProfileResponseDto>(
+    id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/admin/customers/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/admin/customers/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/admin/customers/${id}`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+/**
+ * @summary Admin: daily visits, order count, and revenue for a date range (default last 30 days)
+ */
+ analyticsControllerGetTrends<TData = AnalyticsTrendsDto>(params?: AnalyticsControllerGetTrendsParams, options?: HttpClientBodyOptions): Observable<TData>;
+ analyticsControllerGetTrends<TData = AnalyticsTrendsDto>(params?: AnalyticsControllerGetTrendsParams, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ analyticsControllerGetTrends<TData = AnalyticsTrendsDto>(params?: AnalyticsControllerGetTrendsParams, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  analyticsControllerGetTrends<TData = AnalyticsTrendsDto>(
+    params?: AnalyticsControllerGetTrendsParams, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams({...params, ...options?.params}, new Set<string>([]));
+
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/admin/analytics/trends`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+        params: filteredParams,}
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/admin/analytics/trends`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+        params: filteredParams,}
+    );
+    }
+
+    return this.http.get<TData>(
+      `/admin/analytics/trends`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+        params: filteredParams,}
+    );
+  }
+
+/**
+ * @summary Admin: top products ranked by order count and revenue
+ */
+ analyticsControllerGetTopProducts<TData = TopProductsDto>(params?: AnalyticsControllerGetTopProductsParams, options?: HttpClientBodyOptions): Observable<TData>;
+ analyticsControllerGetTopProducts<TData = TopProductsDto>(params?: AnalyticsControllerGetTopProductsParams, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ analyticsControllerGetTopProducts<TData = TopProductsDto>(params?: AnalyticsControllerGetTopProductsParams, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  analyticsControllerGetTopProducts<TData = TopProductsDto>(
+    params?: AnalyticsControllerGetTopProductsParams, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    const filteredParams = filterParams({...params, ...options?.params}, new Set<string>([]));
+
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/admin/analytics/top-products`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+        params: filteredParams,}
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/admin/analytics/top-products`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+        params: filteredParams,}
+    );
+    }
+
+    return this.http.get<TData>(
+      `/admin/analytics/top-products`,{
+    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+        params: filteredParams,}
+    );
+  }
+
+/**
+ * @summary Admin: new-vs-returning customer counts
+ */
+ analyticsControllerGetCustomerSegments<TData = CustomerSegmentsDto>( options?: HttpClientBodyOptions): Observable<TData>;
+ analyticsControllerGetCustomerSegments<TData = CustomerSegmentsDto>( options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ analyticsControllerGetCustomerSegments<TData = CustomerSegmentsDto>( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  analyticsControllerGetCustomerSegments<TData = CustomerSegmentsDto>(
+     options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.get<TData>(
+      `/admin/analytics/customer-segments`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.get<TData>(
+      `/admin/analytics/customer-segments`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.get<TData>(
+      `/admin/analytics/customer-segments`,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      }
+    );
+  }
+
+/**
+ * @summary Record a first-party storefront page visit
+ */
+ visitsControllerRecord<TData = VisitResponseDto>(recordVisitDto: RecordVisitDto, options?: HttpClientBodyOptions): Observable<TData>;
+ visitsControllerRecord<TData = VisitResponseDto>(recordVisitDto: RecordVisitDto, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ visitsControllerRecord<TData = VisitResponseDto>(recordVisitDto: RecordVisitDto, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  visitsControllerRecord<TData = VisitResponseDto>(
+    recordVisitDto: RecordVisitDto, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+      `/visits`,
+      recordVisitDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }
+    );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+      `/visits`,
+      recordVisitDto,{
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }
+    );
+    }
+
+    return this.http.post<TData>(
+      `/visits`,
+      recordVisitDto,{
         ...(options as Omit<NonNullable<typeof options>, 'observe'>),
         observe: 'body',
       }

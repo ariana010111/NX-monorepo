@@ -361,6 +361,7 @@ model product {
   producttag        producttag[]
   productvariant    productvariant[]
   review            review[]
+  storevisit        storevisit[]
   wishlistitem      wishlistitem[]
 
   @@index([brandId], map: "Product_brandId_idx")
@@ -536,6 +537,36 @@ model seller {
   @@index([type, status], map: "Seller_type_status_idx")
 }
 
+model storevisit {
+  id        String   @id
+  /// Authenticated user, NULL for anonymous/guest visitors.
+  userId    String?
+  /// Product page being viewed, NULL for non-product pages.
+  productId String?
+  /// Anonymous session identifier (e.g. cookie/localStorage key).
+  sessionId String?
+  /// URL path of the visited page (required).
+  path      String
+  /// HTTP Referer header, if present.
+  referrer  String?
+  /// User-Agent string; stored as Text to avoid 191-char MySQL limit.
+  userAgent String?  @db.Text
+  /// One-way hash (SHA-256) of the visitor IP for analytics without PII.
+  ipHash    String?
+  createdAt DateTime @default(now())
+  product   product? @relation(fields: [productId], references: [id], onDelete: SetNull, map: "StoreVisit_productId_fkey")
+  user      user?    @relation(fields: [userId], references: [id], onDelete: SetNull, map: "StoreVisit_userId_fkey")
+
+  /// Temporal range queries per user (profile / analytics).
+  @@index([userId, createdAt], map: "StoreVisit_userId_createdAt_idx")
+  /// Temporal range queries per product (top-viewed analytics).
+  @@index([productId, createdAt], map: "StoreVisit_productId_createdAt_idx")
+  /// Session-scoped visit reconstruction.
+  @@index([sessionId], map: "StoreVisit_sessionId_idx")
+  /// Global time-series analytics (new-vs-returning, daily unique sessions).
+  @@index([createdAt], map: "StoreVisit_createdAt_idx")
+}
+
 model tag {
   id         String       @id
   name       String       @unique(map: "Tag_name_key")
@@ -563,6 +594,7 @@ model user {
   passwordresettoken passwordresettoken[]
   refreshtoken       refreshtoken[]
   review             review[]
+  storevisit         storevisit[]
   userrole           userrole[]
   wishlist           wishlist?
 

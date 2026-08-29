@@ -6,6 +6,8 @@ export interface CartLine {
   shade: string;
   quantity: number;
   unitPrice: number;
+  imageUrl?: string;
+  brand?: string;
 }
 
 /**
@@ -30,6 +32,25 @@ export class CartFacade {
         return items.map((i) => (i.variantId === line.variantId ? { ...i, quantity: i.quantity + line.quantity } : i));
       }
       return [...items, line];
+    });
+  }
+
+  increaseQuantity(variantId: string, by = 1) {
+    this._items.update((items) =>
+      items.map((item) => (item.variantId === variantId ? { ...item, quantity: Math.max(0, item.quantity + by) } : item)),
+    );
+    this._items.update((items) => items.filter((item) => item.quantity > 0));
+  }
+
+  decreaseQuantity(variantId: string, by = 1) {
+    this.increaseQuantity(variantId, -by);
+  }
+
+  setQuantity(variantId: string, quantity: number) {
+    const nextQuantity = Math.max(0, quantity);
+    this._items.update((items) => {
+      if (nextQuantity === 0) return items.filter((item) => item.variantId !== variantId);
+      return items.map((item) => (item.variantId === variantId ? { ...item, quantity: nextQuantity } : item));
     });
   }
 

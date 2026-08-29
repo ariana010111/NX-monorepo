@@ -29,7 +29,7 @@ import { OrdersApiService } from '@beauty-platform-validated/storefront-data-acc
                 <tbody>
                   @for (order of orders; track order.id) {
                     <tr>
-                      <td>{{ order.orderNumber }}</td>
+                      <td><a [routerLink]="['/orders', order.id]">{{ order.orderNumber }}</a></td>
                       <td>{{ order.status }}</td>
                       <td>{{ order.grandTotal | number: '1.2-2' }}</td>
                       <td>{{ order.placedAt | date: 'short' }}</td>

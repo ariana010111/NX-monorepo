@@ -11,6 +11,9 @@ import { CouponsModule } from './coupons/coupons.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ProfileModule } from './profile/profile.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { VisitsModule } from './visits/visits.module';
 
 @Module({
   imports: [
@@ -24,6 +27,9 @@ import { PrismaModule } from './prisma/prisma.module';
     OrdersModule,
     ReviewsModule,
     PaymentsModule,
+    ProfileModule,
+    AnalyticsModule,
+    VisitsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
