@@ -54,4 +54,18 @@ describe('LoginComponent', () => {
     expect(fixture.componentInstance.error()).toBeTruthy();
     expect(navigateSpy).not.toHaveBeenCalled();
   });
+
+  it('navigates to returnUrl when provided in query params', async () => {
+    authFacadeMock.login.mockResolvedValue(undefined);
+    const router = TestBed.inject(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl');
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    vi.spyOn(fixture.componentInstance, 'returnUrl', 'get').mockReturnValue('/checkout');
+    fixture.componentInstance.form.setValue({ email: 'user@example.com', password: 'password123' });
+
+    await fixture.componentInstance.onSubmit();
+
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/checkout');
+  });
 });
